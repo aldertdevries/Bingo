@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- ===== SEO: Bingo Caller ===== -->
+<title>Free Online Bingo Caller App &ndash; 75 &amp; 90 Ball, Voice, Printable Cards</title>
+<meta name="description" content="Free online bingo caller app for US 75-ball and EU/UK 90-ball games. Automatic number calling with voice announcements, multiple winning patterns, printable bingo cards, QR card verification, and support for English, Dutch, German, French and Spanish.">
+<meta name="keywords" content="bingo caller, online bingo caller, bingo caller app, free bingo caller, 75 ball bingo, 90 ball bingo, bingo number generator, automatic bingo caller, bingo card verifier, printable bingo cards, virtual bingo">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://jovial-pavlova-6904c3.netlify.app/">
+
+<!-- Favicon / app-icoon -->
+<link rel="icon" type="image/png" href="/icon-512.png">
+<link rel="apple-touch-icon" href="/icon-512.png">
+
+<!-- Open Graph (Facebook, LinkedIn) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Bingo Caller">
+<meta property="og:title" content="Free Online Bingo Caller App &ndash; 75 &amp; 90 Ball">
+<meta property="og:description" content="Free online bingo caller app for US 75-ball and EU/UK 90-ball games. Automatic number calling with voice announcements, multiple winning patterns, printable bingo cards, QR card verification, and support for English, Dutch, German, French and Spanish.">
+<meta property="og:url" content="https://jovial-pavlova-6904c3.netlify.app/">
+<meta property="og:image" content="https://jovial-pavlova-6904c3.netlify.app/og-image.png">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free Online Bingo Caller App - 75 & 90 Ball">
+<meta name="twitter:description" content="Free online bingo caller app for US 75-ball and EU/UK 90-ball games with automatic voice calling, multiple winning patterns, printable cards and QR card verification.">
+<meta name="twitter:image" content="https://jovial-pavlova-6904c3.netlify.app/og-image.png">
+
+<!-- Structured data: vertelt Google dat het een gratis web-app is -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Bingo Caller",
+  "url": "https://jovial-pavlova-6904c3.netlify.app/",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Any (web browser)",
+  "description": "Free online bingo caller app for US 75-ball and EU/UK 90-ball games with automatic voice calling, multiple winning patterns, printable cards and QR card verification.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "featureList": [
+    "75-ball (US) and 90-ball (EU/UK) bingo",
+    "Automatic number calling",
+    "Voice announcements (text-to-speech)",
+    "Multiple winning patterns",
+    "Printable bingo cards / PDF",
+    "QR card verification",
+    "Multilingual: English, Dutch, German, French, Spanish"
+  ]
+}
+</script>
+<!-- ===== /SEO ===== -->
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:#0f172a;color:#e2e8f0;}
+.wrap{max-width:760px;margin:0 auto;padding:12px;}
+h1{font-size:20px;margin:8px 0;text-align:center;color:#fff;}
+.tabs{display:flex;gap:6px;margin:10px 0;position:sticky;top:0;background:#0f172a;padding:6px 0;z-index:50;}
+.tabs button{flex:1;padding:12px 4px;border:none;border-radius:10px;background:#1e293b;color:#cbd5e1;font-size:14px;font-weight:600;cursor:pointer;}
+.tabs button.active{background:#6366f1;color:#fff;}
+.panel{display:none;}
+.panel.active{display:block;}
+.card{background:#1e293b;border-radius:14px;padding:16px;margin-bottom:14px;}
+label{display:block;font-size:13px;margin:8px 0 4px;color:#94a3b8;}
+input,select{width:100%;padding:11px;border-radius:9px;border:1px solid #334155;background:#0f172a;color:#fff;font-size:15px;}
+button.btn{width:100%;padding:14px;border:none;border-radius:11px;background:#6366f1;color:#fff;font-size:16px;font-weight:700;cursor:pointer;margin-top:10px;}
+button.btn.green{background:#16a34a;}
+button.btn.red{background:#dc2626;}
+button.btn.gray{background:#475569;}
+.row{display:flex;gap:8px;}
+.row>*{flex:1;}
+.current-num{font-size:90px;font-weight:800;text-align:center;color:#fff;line-height:1;margin:10px 0;}
+.current-letter{font-size:28px;font-weight:800;color:#fbbf24;text-align:center;}
+.board{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;margin-top:10px;}
+.board.cols15{grid-template-columns:repeat(15,1fr);}
+.cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:#0f172a;border-radius:5px;font-size:11px;color:#475569;}
+.cell.called{background:#6366f1;color:#fff;font-weight:700;}
+.history{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+.chip{background:#334155;padding:5px 9px;border-radius:8px;font-size:13px;font-weight:600;}
+.chip.last{background:#fbbf24;color:#000;}
+.muted{color:#94a3b8;font-size:13px;}
+.verify-result{padding:14px;border-radius:11px;margin-top:12px;font-weight:700;text-align:center;font-size:16px;}
+.verify-result.win{background:#16a34a;color:#fff;}
+.verify-result.nowin{background:#b45309;color:#fff;}
+.verify-result.err{background:#dc2626;color:#fff;}
+.vcard{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:12px;max-width:320px;margin-left:auto;margin-right:auto;}
+.vcard .vh{background:#6366f1;color:#fff;font-weight:800;text-align:center;padding:8px 0;border-radius:6px;}
+.vcard .vc{background:#0f172a;text-align:center;padding:10px 0;border-radius:6px;font-weight:600;border:1px solid #334155;}
+.vcard .vc.hit{background:#16a34a;color:#fff;}
+.vcard .vc.free{background:#fbbf24;color:#000;font-size:9px;font-weight:800;letter-spacing:0.5px;}
+#reader{margin-top:12px;border-radius:12px;overflow:hidden;}
+.smallnote{font-size:12px;color:#64748b;margin-top:6px;line-height:1.4;}
+.statbar{display:flex;justify-content:space-around;margin:10px 0;text-align:center;}
+.statbar div b{display:block;font-size:22px;color:#fff;}
+.statbar div span{font-size:11px;color:#94a3b8;}
+.pattern-row{display:flex;gap:12px;align-items:flex-start;}
+.pattern-row .sel{flex:1;}
+.pmini{display:grid;gap:2px;width:80px;flex:0 0 80px;}
+.pmini.g5{grid-template-columns:repeat(5,1fr);}
+.pmini.g9{grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(3,1fr);width:120px;flex-basis:120px;}
+.pmini .pc{aspect-ratio:1;background:#0f172a;border:1px solid #334155;border-radius:2px;}
+.pmini .pc.on{background:#6366f1;border-color:#6366f1;}
+.pmini .pc.free{background:#fbbf24;}
+.autobar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.autobar .grow{flex:1;min-width:120px;}
+.toggle{display:flex;align-items:center;gap:8px;font-size:14px;color:#cbd5e1;margin-top:6px;}
+.toggle input{width:auto;}
+.countdown{font-size:13px;color:#fbbf24;margin-top:6px;text-align:center;min-height:16px;}
+</style>
+
+<style id="fresh-theme">
+
+  :root{
+    --bg1:#0b1220; --bg2:#111c33;
+    --surface:rgba(255,255,255,0.04);
+    --surface-2:rgba(255,255,255,0.06);
+    --border:rgba(255,255,255,0.10);
+    --text:#eef2ff; --muted:#9aa6c4;
+    --brand:#6d8bff; --brand2:#9b6dff;
+    --green:#1fbf75; --green2:#16a34a;
+    --red:#ef4757; --amber:#ffc23c;
+    --radius:18px;
+  }
+  body{
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(109,139,255,0.18), transparent 60%),
+      radial-gradient(1000px 500px at 110% 10%, rgba(155,109,255,0.16), transparent 55%),
+      linear-gradient(180deg,var(--bg1),#070c16 80%) !important;
+    color:var(--text)!important;
+    min-height:100vh;
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif!important;
+  }
+  .wrap{max-width:820px!important;padding:18px 16px 60px!important;}
+  h1{
+    font-size:30px!important;font-weight:800!important;letter-spacing:-0.5px;
+    background:linear-gradient(90deg,var(--brand),var(--brand2));
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    margin:14px 0 6px!important;
+  }
+  .tabs{
+    background:rgba(10,16,30,0.7)!important;backdrop-filter:blur(14px);
+    border:1px solid var(--border);border-radius:16px!important;
+    padding:6px!important;gap:6px!important;top:8px!important;box-shadow:0 8px 30px rgba(0,0,0,0.35);
+  }
+  .tabs button{
+    background:transparent!important;color:var(--muted)!important;border-radius:11px!important;
+    font-weight:700!important;font-size:14px!important;transition:all .2s ease;padding:12px 4px!important;
+  }
+  .tabs button:hover{color:var(--text)!important;background:var(--surface)!important;}
+  .tabs button.active{
+    background:linear-gradient(135deg,var(--brand),var(--brand2))!important;color:#fff!important;
+    box-shadow:0 6px 20px rgba(109,139,255,0.45);
+  }
+  .card{
+    background:var(--surface)!important;border:1px solid var(--border)!important;
+    border-radius:var(--radius)!important;padding:20px!important;
+    box-shadow:0 10px 30px rgba(0,0,0,0.25);backdrop-filter:blur(10px);
+  }
+  label{color:var(--muted)!important;font-weight:600!important;font-size:13px!important;}
+  input,select{
+    background:rgba(7,12,22,0.8)!important;border:1px solid var(--border)!important;
+    border-radius:12px!important;color:var(--text)!important;font-size:15px!important;
+    padding:12px!important;transition:border .2s,box-shadow .2s;
+  }
+  input:focus,select:focus{
+    outline:none!important;border-color:var(--brand)!important;
+    box-shadow:0 0 0 3px rgba(109,139,255,0.25)!important;
+  }
+  button.btn{
+    border-radius:14px!important;font-weight:800!important;letter-spacing:.3px;
+    transition:transform .12s ease, box-shadow .2s, filter .2s;border:none!important;
+  }
+  button.btn:hover{filter:brightness(1.07);transform:translateY(-1px);}
+  button.btn:active{transform:translateY(0);}
+  #drawBtn, #autoBtn, #pdfBtn{
+    background:linear-gradient(135deg,var(--green),var(--green2))!important;color:#fff!important;
+    box-shadow:0 8px 24px rgba(31,191,117,0.35)!important;font-size:16px!important;
+  }
+  .statbar div b{font-size:26px!important;}
+  #curNum{
+    font-size:90px!important;font-weight:900!important;line-height:1;
+    background:linear-gradient(135deg,var(--brand),var(--brand2));
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    min-height:96px;display:flex;align-items:center;justify-content:center;
+    text-shadow:0 0 40px rgba(109,139,255,0.25);
+  }
+  .cell{background:rgba(7,12,22,0.6)!important;color:var(--muted)!important;border-radius:7px!important;}
+  .cell.called{
+    background:linear-gradient(135deg,var(--brand),var(--brand2))!important;color:#fff!important;
+    box-shadow:0 3px 10px rgba(109,139,255,0.4);
+  }
+  .chip{background:var(--surface-2)!important;border:1px solid var(--border)!important;border-radius:10px!important;}
+  .chip.last{
+    background:linear-gradient(135deg,var(--amber),#ffd36b)!important;color:#1a1300!important;
+    box-shadow:0 4px 14px rgba(255,194,60,0.45);border:none!important;
+  }
+  .muted,.smallnote{color:var(--muted)!important;}
+  .verify-result.win{background:linear-gradient(135deg,var(--green),var(--green2))!important;}
+  .verify-result.nowin{background:linear-gradient(135deg,#d97706,#b45309)!important;}
+  .verify-result.err{background:linear-gradient(135deg,#f43f5e,#dc2626)!important;}
+  /* language switcher */
+  #langBar{display:flex;justify-content:center;gap:6px;margin:2px 0 14px;flex-wrap:wrap;}
+  #langBar button{
+    background:var(--surface);border:1px solid var(--border);color:var(--muted);
+    border-radius:999px;padding:6px 14px;font-size:13px;font-weight:700;cursor:pointer;
+    transition:all .18s ease;display:flex;align-items:center;gap:6px;
+  }
+  #langBar button:hover{color:var(--text);border-color:var(--brand);}
+  #langBar button.active{
+    background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border-color:transparent;
+    box-shadow:0 4px 14px rgba(109,139,255,0.4);
+  }
+  
+</style>
+<style id="layout-v2">
+
+  /* Top app bar */
+  #appbar{
+    display:flex;align-items:center;gap:12px;margin:8px 0 14px;
+  }
+  #appbar h1{margin:0!important;flex:1;text-align:left!important;font-size:26px!important;}
+  #menuBtn{
+    flex:0 0 auto;width:46px;height:46px;border-radius:14px;cursor:pointer;
+    background:var(--surface);border:1px solid var(--border);color:var(--text);
+    display:flex;align-items:center;justify-content:center;font-size:20px;transition:all .18s ease;
+  }
+  #menuBtn:hover{border-color:var(--brand);background:var(--surface-2);}
+
+  /* Hide the old prominent bits in caller view */
+  #langBar{display:none!important;}
+  .tabs{display:none!important;}
+
+  /* Prominent verify button under main card */
+  #verifyShortcut{
+    width:100%;padding:15px;border-radius:14px;border:1px solid var(--border);
+    background:linear-gradient(135deg, rgba(109,139,255,0.18), rgba(155,109,255,0.18));
+    color:var(--text);font-weight:800;font-size:16px;cursor:pointer;margin-top:12px;
+    display:flex;align-items:center;justify-content:center;gap:10px;transition:all .18s ease;
+  }
+  #verifyShortcut:hover{border-color:var(--brand);filter:brightness(1.08);transform:translateY(-1px);}
+
+  /* Make the main draw card extra prominent */
+  #mainDrawCard{
+    border:1px solid rgba(109,139,255,0.35)!important;
+    box-shadow:0 16px 50px rgba(109,139,255,0.18), 0 8px 24px rgba(0,0,0,0.35)!important;
+    padding:26px 22px!important;
+  }
+  #mainDrawCard #curNum{font-size:104px!important;min-height:110px;}
+  #mainDrawCard .statbar div b{font-size:30px!important;}
+
+  /* Slide-in settings drawer */
+  #settingsOverlay{
+    position:fixed;inset:0;background:rgba(3,6,14,0.55);backdrop-filter:blur(3px);
+    opacity:0;pointer-events:none;transition:opacity .22s ease;z-index:1000;
+  }
+  #settingsOverlay.open{opacity:1;pointer-events:auto;}
+  #settingsDrawer{
+    position:fixed;top:0;right:0;height:100%;width:min(380px,90vw);
+    background:linear-gradient(180deg,#0e1830,#070d1a);
+    border-left:1px solid var(--border);box-shadow:-20px 0 60px rgba(0,0,0,0.5);
+    transform:translateX(100%);transition:transform .26s cubic-bezier(.4,0,.2,1);
+    z-index:1001;overflow-y:auto;padding:18px 16px 40px;
+  }
+  #settingsOverlay.open #settingsDrawer{transform:translateX(0);}
+  #settingsDrawer .drawer-head{
+    display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;
+  }
+  #settingsDrawer .drawer-head h2{font-size:18px;margin:0;color:var(--text);font-weight:800;}
+  #closeDrawer{
+    width:36px;height:36px;border-radius:10px;border:1px solid var(--border);
+    background:var(--surface);color:var(--text);cursor:pointer;font-size:18px;
+  }
+  #closeDrawer:hover{border-color:var(--brand);}
+  #settingsDrawer .drawer-section-title{
+    font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);
+    font-weight:700;margin:18px 0 8px;
+  }
+  /* language buttons inside drawer */
+  #settingsDrawer #langBar{display:flex!important;flex-wrap:wrap;gap:8px;margin:0;justify-content:flex-start;}
+  /* cards moved into drawer become flush */
+  #settingsDrawer .card{margin-bottom:12px!important;}
+  #drawerCardsBtn{
+    width:100%;padding:14px;border-radius:14px;border:1px solid var(--border);
+    background:var(--surface);color:var(--text);font-weight:800;font-size:15px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:8px;transition:all .18s ease;
+  }
+  #drawerCardsBtn:hover{border-color:var(--brand);background:var(--surface-2);}
+  
+</style>
+<style id="patternBadgeCSS">
+
+  #patternBadge{
+    display:flex;align-items:center;justify-content:center;gap:12px;
+    margin:0 auto 6px;padding:10px 16px;max-width:fit-content;
+    background:rgba(109,139,255,0.12);border:1px solid rgba(109,139,255,0.30);
+    border-radius:14px;
+  }
+  #patternBadge .pb-text{display:flex;flex-direction:column;line-height:1.15;}
+  #patternBadge .pb-label{font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:700;}
+  #patternBadge .pb-name{font-size:15px;font-weight:800;color:var(--text);}
+  #patternBadge .pb-mini{flex:0 0 auto;}
+  /* shrink whatever mini grid we clone in */
+  #patternBadge .pb-mini .pmini{width:46px!important;flex-basis:46px!important;}
+  #patternBadge .pb-mini .pmini.g9{width:70px!important;flex-basis:70px!important;}
+  
+</style>
+</head><body>
+<div class="wrap">
+  <h1>🎱 Bingo Caller</h1>
+  <div class="tabs">
+    <button id="tab-caller" class="active" onclick="showTab('caller')">Caller</button>
+    <button id="tab-print" onclick="showTab('print')">Cards / PDF</button>
+    <button id="tab-verify" onclick="showTab('verify')">Verify</button>
+  </div>
+
+  <div id="panel-caller" class="panel active">
+    <div class="card">
+      <label>Game mode</label>
+      <select id="mode" onchange="resetGame()">
+        <option value="75">US Bingo (1–75, B-I-N-G-O)</option>
+        <option value="90">EU/UK Bingo (1–90)</option>
+      </select>
+    </div>
+    <div class="card" id="callerPatternCard">
+      <label>Winning pattern</label>
+      <div class="pattern-row">
+        <div class="sel"><select id="patternSel" onchange="onPatternChange()"></select>
+          <div class="smallnote" id="patternDesc"></div>
+        </div>
+        <div id="patternPreview"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="current-letter" id="curLetter"></div>
+      <div class="current-num" id="curNum">–</div>
+      <div class="statbar">
+        <div><b id="stCalled">0</b><span>Called</span></div>
+        <div><b id="stLeft">75</b><span>Remaining</span></div>
+      </div>
+      <button class="btn green" id="drawBtn" onclick="drawNumber()">DRAW NEXT NUMBER</button>
+      <div class="row">
+        <button class="btn gray" onclick="undoDraw()">Undo</button>
+        <button class="btn red" onclick="resetGame()">Reset</button>
+      </div>
+    </div>
+    <div class="card" id="autoCallCard">
+      <label>Automatic calling</label>
+      <div class="autobar">
+        <div class="grow">
+          <select id="autoInterval">
+            <option value="3">Every 3 seconds</option>
+            <option value="5" selected>Every 5 seconds</option>
+            <option value="8">Every 8 seconds</option>
+            <option value="10">Every 10 seconds</option>
+            <option value="15">Every 15 seconds</option>
+            <option value="20">Every 20 seconds</option>
+            <option value="30">Every 30 seconds</option>
+          </select>
+        </div>
+        <div class="grow"><button class="btn green" id="autoBtn" onclick="toggleAuto()" style="margin-top:0;">▶ Start Auto</button></div>
+      </div>
+      <div class="countdown" id="autoCountdown"></div>
+      <label class="toggle"><input type="checkbox" id="voiceToggle"> 🔊 Speak each number aloud</label>
+    </div>
+    <div class="card">
+      <label>Called numbers history (newest first)</label>
+      <div class="history" id="history"><span class="muted">No numbers called yet.</span></div>
+    </div>
+    <div class="card">
+      <label>Full board</label>
+      <div class="board" id="board"></div>
+    </div>
+  </div>
+
+  <div id="panel-print" class="panel">
+    <div class="card">
+      <label>PDF / Game Title</label>
+      <input id="pdfTitle" value="Bingo Night" />
+      <label>Game mode for cards</label>
+      <select id="cardMode">
+        <option value="75">US Bingo (1–75, 5×5, FREE center)</option>
+        <option value="90">EU/UK Bingo (1–90, 3×9)</option>
+      </select>
+      <label>Number of cards (6 per page)</label>
+      <input id="cardCount" type="number" value="6" min="1" max="600" />
+      <label>Starting card number</label>
+      <input id="cardStart" type="number" value="1" min="1" />
+      <button class="btn" id="pdfBtn" onclick="generatePDF()">GENERATE PRINTABLE PDF</button>
+      <div class="smallnote">Each card is black &amp; white for easy printing and carries a unique QR code. Scan a card's QR code in the Verify tab to check it against the called numbers.</div>
+      <div id="pdfStatus" class="muted" style="margin-top:8px;"></div>
+    </div>
+  </div>
+
+  <div id="panel-verify" class="panel">
+    <div class="card">
+      <div class="smallnote" id="verifyPatternNote" style="margin-top:0;"></div>
+      <label>Verify a card against called numbers</label>
+      <button class="btn" id="scanBtn" onclick="toggleScanner()">📷 Scan QR with Camera</button>
+      <div id="reader"></div>
+      <label style="margin-top:12px;">…or paste the card code manually</label>
+      <input id="manualCode" placeholder="card code here" />
+      <button class="btn gray" onclick="verifyManual()">Verify pasted code</button>
+      <div id="verifyOut"></div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+"use strict";
+
+var state={max:75,called:[],remaining:[]};
+function LETTERS(n){ if(n<=15)return'B'; if(n<=30)return'I'; if(n<=45)return'N'; if(n<=60)return'G'; return'O'; }
+window.showTab=function(t){
+  ['caller','print','verify'].forEach(function(x){
+    document.getElementById('panel-'+x).classList.toggle('active', x===t);
+    document.getElementById('tab-'+x).classList.toggle('active', x===t);
+  });
+  if(t!=='caller' && window.__autoState && window.__autoState.running) window.stopAuto();
+  if(t!=='verify' && window.__scannerActive) window.stopScanner();
+};
+window.resetGame=function(){
+  if(window.__autoState && window.__autoState.running) window.stopAuto();
+  state.max=parseInt(document.getElementById('mode').value,10);
+  state.called=[]; state.remaining=[];
+  for(var i=1;i<=state.max;i++) state.remaining.push(i);
+  document.getElementById('curNum').textContent='–';
+  document.getElementById('curLetter').textContent='';
+  renderBoard(); renderHistory(); updateStats(); populatePatterns();
+};
+function updateStats(){ document.getElementById('stCalled').textContent=state.called.length; document.getElementById('stLeft').textContent=state.remaining.length; }
+window.drawNumber=function(){
+  if(state.remaining.length===0){ document.getElementById('curNum').textContent='✓'; document.getElementById('curLetter').textContent='ALL CALLED'; return; }
+  var idx=Math.floor(Math.random()*state.remaining.length);
+  var n=state.remaining.splice(idx,1)[0];
+  state.called.push(n);
+  document.getElementById('curNum').textContent=n;
+  document.getElementById('curLetter').textContent=(state.max===75)?LETTERS(n):'';
+  renderBoard(); renderHistory(); updateStats();
+};
+window.undoDraw=function(){
+  if(state.called.length===0) return;
+  var n=state.called.pop(); state.remaining.push(n);
+  var prev=state.called[state.called.length-1];
+  document.getElementById('curNum').textContent=(prev!==undefined)?prev:'–';
+  document.getElementById('curLetter').textContent=(prev!==undefined && state.max===75)?LETTERS(prev):'';
+  renderBoard(); renderHistory(); updateStats();
+};
+function renderBoard(){
+  var b=document.getElementById('board'); b.classList.toggle('cols15', state.max===90); b.innerHTML='';
+  for(var i=1;i<=state.max;i++){ var c=document.createElement('div'); c.className='cell'+(state.called.indexOf(i)>=0?' called':''); c.textContent=i; b.appendChild(c); }
+}
+function renderHistory(){
+  var h=document.getElementById('history');
+  if(state.called.length===0){ h.innerHTML='<span class="muted">No numbers called yet.</span>'; return; }
+  h.innerHTML='';
+  state.called.slice().reverse().forEach(function(n,i){ var s=document.createElement('span'); s.className='chip'+(i===0?' last':''); s.textContent=(state.max===75?LETTERS(n)+'-':'')+n; h.appendChild(s); });
+}
+window.__getCalled=function(){ return state.called.slice(); };
+window.__getMax=function(){ return state.max; };
+
+function shuffle(a){ for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;} return a; }
+function pick(min,max,count){ var pool=[]; for(var i=min;i<=max;i++)pool.push(i); shuffle(pool); return pool.slice(0,count).sort(function(x,y){return x-y;}); }
+function genCard75(){
+  var cols=[]; var ranges=[[1,15],[16,30],[31,45],[46,60],[61,75]];
+  for(var c=0;c<5;c++) cols.push(pick(ranges[c][0],ranges[c][1],5));
+  cols[2][2]=0;
+  var flat=[]; for(var cc=0;cc<5;cc++) for(var r=0;r<5;r++) flat.push(cols[cc][r]);
+  return flat;
+}
+function genCard90(){
+  var grid;
+  do{
+    grid=[[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0]];
+    var counts=[1,1,1,1,1,1,1,1,1]; var extra=6;
+    while(extra>0){ var k=Math.floor(Math.random()*9); if(counts[k]<3){counts[k]++;extra--;} }
+    var colRanges=[[1,9],[10,19],[20,29],[30,39],[40,49],[50,59],[60,69],[70,79],[80,90]];
+    var colNums=[]; for(var c=0;c<9;c++){ colNums[c]=pick(colRanges[c][0],colRanges[c][1],counts[c]); }
+    var rowCounts=[0,0,0]; var ok=true;
+    for(var c2=0;c2<9;c2++){
+      var need=counts[c2];
+      var rows=[0,1,2].filter(function(r){return rowCounts[r]<5;});
+      shuffle(rows);
+      if(rows.length<need){ok=false;break;}
+      var chosen=rows.slice(0,need).sort();
+      for(var kk=0;kk<need;kk++){ grid[chosen[kk]][c2]=colNums[c2][kk]; rowCounts[chosen[kk]]++; }
+    }
+    if(ok && rowCounts[0]===5 && rowCounts[1]===5 && rowCounts[2]===5){ break; } else { grid=null; }
+  } while(!grid);
+  var flat=[]; for(var r=0;r<3;r++) for(var c=0;c<9;c++) flat.push(grid[r][c]);
+  return flat;
+}
+window.__genCard=function(mode){ return mode===75?genCard75():genCard90(); };
+window.__encodeCard=function(mode,id,flat){ return 'BINGO'+mode+'|'+id+'|'+flat.join(','); };
+window.__decodeCard=function(str){
+  str=(str||'').trim();
+  var m=str.match(/^BINGO(75|90)\|(\d+)\|([\d,]+)$/);
+  if(!m) return null;
+  var mode=parseInt(m[1],10), id=parseInt(m[2],10);
+  var flat=m[3].split(',').map(function(x){return parseInt(x,10);});
+  if(mode===75 && flat.length!==25) return null;
+  if(mode===90 && flat.length!==27) return null;
+  return {mode:mode,id:id,flat:flat};
+};
+
+function maskFromCells(cells){ var m=new Array(25); for(var i=0;i<25;i++)m[i]=false; cells.forEach(function(p){m[p[0]*5+p[1]]=true;}); return m; }
+var lines5=(function(){ var L=[],r,c;
+  for(r=0;r<5;r++) L.push([0,1,2,3,4].map(function(c){return [c,r];}));
+  for(c=0;c<5;c++) L.push([0,1,2,3,4].map(function(r){return [c,r];}));
+  L.push([[0,0],[1,1],[2,2],[3,3],[4,4]]); L.push([[0,4],[1,3],[2,2],[3,1],[4,0]]);
+  return L; })();
+function allCells(){ var a=[]; for(var c=0;c<5;c++)for(var r=0;r<5;r++)a.push([c,r]); return a; }
+function frameCells(){ var a=[]; for(var i=0;i<5;i++){a.push([i,0]);a.push([i,4]);a.push([0,i]);a.push([4,i]);} return a; }
+var P75={
+  any_line:{name:'Any Line (row/col/diag)',type:'anyOf',lines:lines5},
+  four_corners:{name:'Four Corners',type:'all',mask:maskFromCells([[0,0],[4,0],[0,4],[4,4]])},
+  x:{name:'X (both diagonals)',type:'all',mask:maskFromCells([[0,0],[1,1],[2,2],[3,3],[4,4],[0,4],[1,3],[3,1],[4,0]])},
+  plus:{name:'Plus / Cross (+)',type:'all',mask:maskFromCells([[2,0],[2,1],[2,2],[2,3],[2,4],[0,2],[1,2],[3,2],[4,2]])},
+  letter_t:{name:'Letter T',type:'all',mask:maskFromCells([[0,0],[1,0],[2,0],[3,0],[4,0],[2,1],[2,2],[2,3],[2,4]])},
+  letter_l:{name:'Letter L',type:'all',mask:maskFromCells([[0,0],[0,1],[0,2],[0,3],[0,4],[1,4],[2,4],[3,4],[4,4]])},
+  frame:{name:'Outer Frame',type:'all',mask:maskFromCells(frameCells())},
+  postage:{name:'Postage Stamp (top-right 2x2)',type:'all',mask:maskFromCells([[3,0],[4,0],[3,1],[4,1]])},
+  blackout:{name:'Blackout / Full House',type:'all',mask:maskFromCells(allCells())}
+};
+var P90={
+  one_line:{name:'One Line (any row)',type:'rows90',need:1},
+  two_lines:{name:'Two Lines',type:'rows90',need:2},
+  full_house:{name:'Full House (all 15)',type:'rows90',need:3}
+};
+window.__PATTERNS={75:P75,90:P90};
+window.__bingoPattern={75:'any_line',90:'one_line'};
+window.__evalPattern=function(card,calledSet,patternKey){
+  if(card.mode===75){
+    var def=window.__PATTERNS[75][patternKey]||window.__PATTERNS[75].any_line;
+    var grid=[]; for(var c=0;c<5;c++){grid[c]=[];for(var r=0;r<5;r++)grid[c][r]=card.flat[c*5+r];}
+    function isHit(c,r){ return grid[c][r]===0 || calledSet.has(grid[c][r]); }
+    if(def.type==='anyOf'){
+      var won=null;
+      for(var li=0;li<def.lines.length;li++){ var line=def.lines[li]; if(line.every(function(p){return isHit(p[0],p[1]);})){won=line;break;} }
+      return {win:!!won,lineWon:won,defName:def.name};
+    } else {
+      var cov=new Set(),total=0,covered=0,allOk=true;
+      for(var c2=0;c2<5;c2++)for(var r2=0;r2<5;r2++){ if(def.mask[c2*5+r2]){ total++; if(isHit(c2,r2)){covered++;cov.add(c2+','+r2);} else allOk=false; } }
+      return {win:allOk,requiredCovered:covered,requiredTotal:total,coveredCells:cov,mask:def.mask,defName:def.name};
+    }
+  } else {
+    var d=window.__PATTERNS[90][patternKey]||window.__PATTERNS[90].one_line;
+    var g=[]; for(var rr=0;rr<3;rr++){g[rr]=[];for(var cc=0;cc<9;cc++)g[rr][cc]=card.flat[rr*9+cc];}
+    var fullRows=0;
+    for(var rw=0;rw<3;rw++){ var nums=g[rw].filter(function(v){return v!==0;}); var hit=nums.filter(function(v){return calledSet.has(v);}); if(hit.length===nums.length && nums.length>0) fullRows++; }
+    return {win:fullRows>=d.need,fullRows:fullRows,need:d.need,defName:d.name};
+  }
+};
+
+function curMode(){ return window.__getMax?window.__getMax():parseInt(document.getElementById('mode').value,10); }
+window.populatePatterns=function(){
+  var mode=curMode(); var sel=document.getElementById('patternSel'); var cat=window.__PATTERNS[mode]; var current=window.__bingoPattern[mode];
+  sel.innerHTML='';
+  Object.keys(cat).forEach(function(k){ var o=document.createElement('option'); o.value=k; o.textContent=cat[k].name; if(k===current)o.selected=true; sel.appendChild(o); });
+  renderPatternPreview(); updatePatternNotes();
+};
+function renderPatternPreview(){
+  var mode=curMode(); var key=window.__bingoPattern[mode]; var def=window.__PATTERNS[mode][key]; var wrap=document.getElementById('patternPreview');
+  if(mode===75){
+    if(def.type==='anyOf'){ wrap.innerHTML='<div class="smallnote" style="width:90px;">Any full row, column or diagonal wins.</div>'; return; }
+    var h='<div class="pmini g5">';
+    for(var r=0;r<5;r++)for(var c=0;c<5;c++){ var cls='pc'; if(c===2&&r===2)cls+=' free'; if(def.mask[c*5+r])cls+=' on'; h+='<div class="'+cls+'"></div>'; }
+    h+='</div>'; wrap.innerHTML=h;
+  } else {
+    var h2='<div class="pmini g9">';
+    for(var rr=0;rr<3;rr++)for(var cc=0;cc<9;cc++){ var on=rr<def.need; h2+='<div class="pc'+(on?' on':'')+'"></div>'; }
+    h2+='</div>'; wrap.innerHTML=h2;
+  }
+}
+function updatePatternNotes(){
+  var mode=curMode(); var def=window.__PATTERNS[mode][window.__bingoPattern[mode]];
+  document.getElementById('patternDesc').textContent='Players win when they complete: '+def.name+'.';
+  document.getElementById('verifyPatternNote').textContent='Verifying against pattern: '+def.name+' ('+mode+'-ball). Change it in the Caller tab.';
+}
+window.onPatternChange=function(){ var mode=curMode(); window.__bingoPattern[mode]=document.getElementById('patternSel').value; renderPatternPreview(); updatePatternNotes(); };
+
+function qrDataURL(text,size){
+  return new Promise(function(resolve){
+    var holder=document.createElement('div'); holder.style.position='fixed'; holder.style.left='-9999px'; holder.style.top='0'; document.body.appendChild(holder);
+    new QRCode(holder,{text:text,width:size,height:size,correctLevel:QRCode.CorrectLevel.M,colorDark:'#000000',colorLight:'#ffffff'});
+    setTimeout(function(){ var url=null; var cv=holder.querySelector('canvas'); if(cv){url=cv.toDataURL('image/png');} else { var img=holder.querySelector('img'); if(img)url=img.src; } holder.remove(); resolve(url); },60);
+  });
+}
+function drawCard(doc,x,y,w,h,title,id,mode,flat,qr){
+  doc.setDrawColor(0); doc.setLineWidth(0.5); doc.roundedRect(x,y,w,h,2,2);
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(0); doc.text(title.substring(0,28), x+3, y+6);
+  doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.text('Card #'+id, x+w-3, y+6, {align:'right'});
+  var gridTop=y+9, qrSize=16, gridH=h-(gridTop-y)-qrSize-3;
+  if(mode===75){
+    var cw=w/5, ch=gridH/6, hdr=['B','I','N','G','O'];
+    for(var c=0;c<5;c++){ doc.setFillColor(0); doc.rect(x+c*cw,gridTop,cw,ch,'F'); doc.setTextColor(255); doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.text(hdr[c], x+c*cw+cw/2, gridTop+ch/2+1.6,{align:'center'}); }
+    doc.setTextColor(0);
+    for(var c2=0;c2<5;c2++) for(var r=0;r<5;r++){
+      var val=flat[c2*5+r]; var cellX=x+c2*cw, cellY=gridTop+ch+r*ch; doc.setLineWidth(0.3); doc.rect(cellX,cellY,cw,ch);
+      if(val===0){ doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.text('BINGO', cellX+cw/2, cellY+ch/2+1.5,{align:'center'}); }
+      else { doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.text(String(val), cellX+cw/2, cellY+ch/2+1.8,{align:'center'}); }
+    }
+  } else {
+    var cw2=w/9, ch2=gridH/3;
+    for(var rr=0;rr<3;rr++) for(var cc=0;cc<9;cc++){
+      var v=flat[rr*9+cc]; var cx2=x+cc*cw2, cy2=gridTop+rr*ch2; doc.setLineWidth(0.3);
+      if(v===0){ doc.setFillColor(225); doc.rect(cx2,cy2,cw2,ch2,'F'); }
+      doc.rect(cx2,cy2,cw2,ch2);
+      if(v!==0){ doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.text(String(v), cx2+cw2/2, cy2+ch2/2+1.5,{align:'center'}); }
+    }
+  }
+  if(qr){ doc.addImage(qr,'PNG', x+3, y+h-qrSize-1, qrSize, qrSize); }
+  doc.setFont('helvetica','normal'); doc.setFontSize(6.5); doc.setTextColor(80);
+  doc.text('Scan to verify', x+3+qrSize+2, y+h-qrSize+3); doc.text(title.substring(0,30), x+3+qrSize+2, y+h-qrSize+7);
+}
+window.generatePDF=async function(){
+  var status=document.getElementById('pdfStatus');
+  try{
+    var title=(document.getElementById('pdfTitle').value||'Bingo').trim();
+    var mode=parseInt(document.getElementById('cardMode').value,10);
+    var count=Math.max(1,Math.min(600,parseInt(document.getElementById('cardCount').value,10)||6));
+    var start=Math.max(1,parseInt(document.getElementById('cardStart').value,10)||1);
+    status.textContent='Generating '+count+' cards…';
+    var jsPDF=window.jspdf.jsPDF;
+    var doc=new jsPDF({unit:'mm',format:'a4'});
+    var margin=10, cols=2, rows=3, gapX=8, gapY=8;
+    var cardW=(210-2*margin-gapX*(cols-1))/cols, cardH=(297-2*margin-gapY*(rows-1))/rows;
+    for(var i=0;i<count;i++){
+      var id=start+i, slot=i%6;
+      if(i>0 && slot===0) doc.addPage();
+      var cx=margin+(slot%cols)*(cardW+gapX), cy=margin+Math.floor(slot/cols)*(cardH+gapY);
+      var flat=window.__genCard(mode), code=window.__encodeCard(mode,id,flat), qr=await qrDataURL(code,160);
+      drawCard(doc,cx,cy,cardW,cardH,title,id,mode,flat,qr);
+    }
+    var fname=title.replace(/[^a-z0-9]+/gi,'_')+'_bingo_cards.pdf';
+    doc.save(fname);
+    status.textContent='✓ PDF "'+fname+'" generated ('+count+' cards).';
+  }catch(e){ status.textContent='Error: '+e.message; }
+};
+
+window.__renderResult=function(card){
+  var o=document.getElementById('verifyOut');
+  if(!card){ o.innerHTML='<div class="verify-result err">Invalid or unrecognized card code.</div>'; return; }
+  var calledSet=new Set(window.__getCalled());
+  var patternKey=window.__bingoPattern[card.mode];
+  var def=window.__PATTERNS[card.mode][patternKey];
+  var res=window.__evalPattern(card,calledSet,patternKey);
+  var html='';
+  if(card.mode===75){
+    var label=res.win?'🎉 BINGO! Valid "'+def.name+'"':'Not yet — "'+def.name+'" incomplete';
+    html+='<div class="verify-result '+(res.win?'win':'nowin')+'">Card #'+card.id+' (US 75) — '+label+'</div>';
+    html+='<div class="vcard">';
+    ['B','I','N','G','O'].forEach(function(L){html+='<div class="vh">'+L+'</div>';});
+    var required=new Set();
+    if(def.type==='all'){ for(var c=0;c<5;c++)for(var r=0;r<5;r++)if(def.mask[c*5+r])required.add(c+','+r); }
+    for(var r2=0;r2<5;r2++)for(var c2=0;c2<5;c2++){
+      var v=card.flat[c2*5+r2]; var isReq=required.has(c2+','+r2); var reqStyle=isReq?' style="outline:2px solid #6366f1;outline-offset:-2px;"':'';
+      if(v===0) html+='<div class="vc free"'+reqStyle+'>BINGO</div>';
+      else html+='<div class="vc'+(calledSet.has(v)?' hit':'')+'"'+reqStyle+'>'+v+'</div>';
+    }
+    html+='</div>';
+    if(def.type==='all') html+='<div class="muted" style="margin-top:8px;">Pattern cells covered: '+res.requiredCovered+' / '+res.requiredTotal+'. (Highlighted cells are required.)</div>';
+    else if(res.win && res.lineWon) html+='<div class="muted" style="margin-top:8px;">Completed line found.</div>';
+  } else {
+    var label2;
+    if(res.win && def.need===3) label2='🎉 FULL HOUSE! All numbers called';
+    else if(res.win) label2='🎉 Valid "'+def.name+'" ('+res.fullRows+' full row(s))';
+    else label2='Not yet — needs '+def.need+' full row(s), has '+res.fullRows;
+    html+='<div class="verify-result '+(res.win?'win':'nowin')+'">Card #'+card.id+' (EU 90) — '+label2+'</div>';
+    html+='<div class="vcard" style="grid-template-columns:repeat(9,1fr);max-width:100%;">';
+    for(var rr=0;rr<3;rr++)for(var cc=0;cc<9;cc++){ var vv=card.flat[rr*9+cc]; if(vv===0) html+='<div class="vc" style="background:#1e293b;border:none;">&nbsp;</div>'; else html+='<div class="vc'+(calledSet.has(vv)?' hit':'')+'">'+vv+'</div>'; }
+    html+='</div>';
+  }
+  html+='<div class="muted" style="margin-top:6px;">Checked against '+window.__getCalled().length+' called number(s).</div>';
+  o.innerHTML=html;
+};
+window.verifyManual=function(){ window.__renderResult(window.__decodeCard(document.getElementById('manualCode').value)); };
+window.__scannerActive=false; var html5Qr=null;
+window.toggleScanner=function(){ window.__scannerActive?window.stopScanner():window.startScanner(); };
+window.startScanner=function(){
+  var btn=document.getElementById('scanBtn');
+  if(typeof Html5Qrcode==='undefined'){ document.getElementById('verifyOut').innerHTML='<div class="verify-result err">Scanner library not loaded.</div>'; return; }
+  html5Qr=new Html5Qrcode('reader');
+  html5Qr.start({facingMode:'environment'},{fps:10,qrbox:{width:220,height:220}},
+    function(decoded){ var card=window.__decodeCard(decoded); if(card){ window.__renderResult(card); window.stopScanner(); } },
+    function(){}
+  ).then(function(){ window.__scannerActive=true; btn.textContent='■ Stop Camera'; btn.classList.add('red'); })
+   .catch(function(err){ document.getElementById('verifyOut').innerHTML='<div class="verify-result err">Camera error: '+err+'</div>'; });
+};
+window.stopScanner=function(){
+  var btn=document.getElementById('scanBtn');
+  if(html5Qr){ html5Qr.stop().then(function(){html5Qr.clear();}).catch(function(){}); }
+  window.__scannerActive=false; btn.textContent='📷 Scan QR with Camera'; btn.classList.remove('red');
+};
+
+window.__autoState={running:false,timer:null,tick:null,secsLeft:0};
+function speakNumber(){
+  if(!document.getElementById('voiceToggle').checked) return;
+  if(!('speechSynthesis' in window)) return;
+  var numTxt=document.getElementById('curNum').textContent;
+  if(!numTxt||numTxt==='–'||numTxt==='✓') return;
+  var n=parseInt(numTxt,10); if(isNaN(n)) return;
+  var mode=window.__getMax?window.__getMax():75;
+  var phrase=(mode===75)?(LETTERS(n)+', '+n):(''+n);
+  try{ window.speechSynthesis.cancel(); var u=new SpeechSynthesisUtterance(phrase); u.rate=0.9; window.speechSynthesis.speak(u); }catch(e){}
+}
+function setBtn(running){
+  var b=document.getElementById('autoBtn');
+  if(running){ b.textContent='⏸ Stop Auto'; b.classList.remove('green'); b.classList.add('red'); }
+  else { b.textContent='▶ Start Auto'; b.classList.remove('red'); b.classList.add('green'); }
+  document.getElementById('drawBtn').style.opacity=running?'0.5':'1';
+}
+function clearTimers(){ if(window.__autoState.timer){clearInterval(window.__autoState.timer);window.__autoState.timer=null;} if(window.__autoState.tick){clearInterval(window.__autoState.tick);window.__autoState.tick=null;} }
+function doAutoDraw(){
+  if(parseInt(document.getElementById('stLeft').textContent,10)<=0){ window.stopAuto(); document.getElementById('autoCountdown').textContent='All numbers called.'; return; }
+  window.drawNumber(); speakNumber();
+  if(parseInt(document.getElementById('stLeft').textContent,10)<=0){ window.stopAuto(); document.getElementById('autoCountdown').textContent='All numbers called.'; }
+}
+window.startAuto=function(){
+  if(window.__autoState.running) return;
+  var secs=parseInt(document.getElementById('autoInterval').value,10);
+  window.__autoState.running=true; setBtn(true);
+  doAutoDraw();
+  if(!window.__autoState.running) return;
+  window.__autoState.secsLeft=secs;
+  function uc(){ document.getElementById('autoCountdown').textContent='Next number in '+window.__autoState.secsLeft+'s…'; }
+  uc();
+  window.__autoState.tick=setInterval(function(){ window.__autoState.secsLeft--; if(window.__autoState.secsLeft<=0) window.__autoState.secsLeft=secs; uc(); },1000);
+  window.__autoState.timer=setInterval(function(){ doAutoDraw(); window.__autoState.secsLeft=secs; },secs*1000);
+};
+window.stopAuto=function(){ clearTimers(); window.__autoState.running=false; setBtn(false); document.getElementById('autoCountdown').textContent=''; try{ window.speechSynthesis&&window.speechSynthesis.cancel(); }catch(e){} };
+window.toggleAuto=function(){ window.__autoState.running?window.stopAuto():window.startAuto(); };
+document.addEventListener('DOMContentLoaded',function(){
+  document.getElementById('autoInterval').addEventListener('change',function(){ if(window.__autoState.running){ window.stopAuto(); window.startAuto(); } });
+  resetGame();
+});
+
+})();
+</script>
+<script>
+window.ENH_I18N = {"en":{"name":"English","flag":"🇬🇧","code":"en-GB"},"nl":{"name":"Nederlands","flag":"🇳🇱","code":"nl-NL"},"de":{"name":"Deutsch","flag":"🇩🇪","code":"de-DE"},"fr":{"name":"Français","flag":"🇫🇷","code":"fr-FR"},"es":{"name":"Español","flag":"🇪🇸","code":"es-ES"}};
+window.ENH_T = {"🎱 Bingo Caller":{"nl":"🎱 Bingo Omroeper","de":"🎱 Bingo-Ansager","fr":"🎱 Annonceur Bingo","es":"🎱 Locutor de Bingo"},"Caller":{"nl":"Omroeper","de":"Ansager","fr":"Annonceur","es":"Locutor"},"Cards / PDF":{"nl":"Kaarten / PDF","de":"Karten / PDF","fr":"Cartes / PDF","es":"Cartones / PDF"},"Verify":{"nl":"Controleren","de":"Prüfen","fr":"Vérifier","es":"Verificar"},"Game mode":{"nl":"Spelmodus","de":"Spielmodus","fr":"Mode de jeu","es":"Modo de juego"},"US Bingo (1–75, B-I-N-G-O)":{"nl":"US Bingo (1–75, B-I-N-G-O)","de":"US-Bingo (1–75, B-I-N-G-O)","fr":"Bingo US (1–75, B-I-N-G-O)","es":"Bingo EE.UU. (1–75, B-I-N-G-O)"},"EU/UK Bingo (1–90)":{"nl":"EU/UK Bingo (1–90)","de":"EU/UK-Bingo (1–90)","fr":"Bingo EU/UK (1–90)","es":"Bingo EU/UK (1–90)"},"Winning pattern":{"nl":"Winnend patroon","de":"Gewinnmuster","fr":"Motif gagnant","es":"Patrón ganador"},"Any Line (row/col/diag)":{"nl":"Elke lijn (rij/kolom/diag)","de":"Beliebige Linie (Reihe/Spalte/Diag)","fr":"Toute ligne (rangée/col/diag)","es":"Cualquier línea (fila/col/diag)"},"Four Corners":{"nl":"Vier hoeken","de":"Vier Ecken","fr":"Quatre coins","es":"Cuatro esquinas"},"X (both diagonals)":{"nl":"X (beide diagonalen)","de":"X (beide Diagonalen)","fr":"X (deux diagonales)","es":"X (ambas diagonales)"},"Plus / Cross (+)":{"nl":"Plus / Kruis (+)","de":"Plus / Kreuz (+)","fr":"Plus / Croix (+)","es":"Más / Cruz (+)"},"Letter T":{"nl":"Letter T","de":"Buchstabe T","fr":"Lettre T","es":"Letra T"},"Letter L":{"nl":"Letter L","de":"Buchstabe L","fr":"Lettre L","es":"Letra L"},"Outer Frame":{"nl":"Buitenrand","de":"Äußerer Rahmen","fr":"Cadre extérieur","es":"Marco exterior"},"Postage Stamp (top-right 2x2)":{"nl":"Postzegel (rechtsboven 2x2)","de":"Briefmarke (oben rechts 2x2)","fr":"Timbre (haut-droite 2x2)","es":"Sello (sup-der 2x2)"},"Blackout / Full House":{"nl":"Volle kaart / Full House","de":"Vollkarte / Full House","fr":"Carton plein / Full House","es":"Cartón lleno / Full House"},"One Line (any row)":{"nl":"Eén lijn (elke rij)","de":"Eine Linie (beliebige Reihe)","fr":"Une ligne (toute rangée)","es":"Una línea (cualquier fila)"},"Two Lines":{"nl":"Twee lijnen","de":"Zwei Linien","fr":"Deux lignes","es":"Dos líneas"},"Full House (all 15)":{"nl":"Full House (alle 15)","de":"Full House (alle 15)","fr":"Full House (les 15)","es":"Full House (los 15)"},"Called":{"nl":"Getrokken","de":"Gezogen","fr":"Tirés","es":"Cantados"},"Remaining":{"nl":"Resterend","de":"Verbleibend","fr":"Restants","es":"Restantes"},"DRAW NEXT NUMBER":{"nl":"VOLGEND NUMMER TREKKEN","de":"NÄCHSTE ZAHL ZIEHEN","fr":"TIRER LE PROCHAIN NUMÉRO","es":"SACAR SIGUIENTE NÚMERO"},"Undo":{"nl":"Ongedaan maken","de":"Rückgängig","fr":"Annuler","es":"Deshacer"},"Reset":{"nl":"Resetten","de":"Zurücksetzen","fr":"Réinitialiser","es":"Reiniciar"},"Automatic calling":{"nl":"Automatisch omroepen","de":"Automatisch ansagen","fr":"Annonce automatique","es":"Canto automático"},"Every 3 seconds":{"nl":"Elke 3 seconden","de":"Alle 3 Sekunden","fr":"Toutes les 3 secondes","es":"Cada 3 segundos"},"Every 5 seconds":{"nl":"Elke 5 seconden","de":"Alle 5 Sekunden","fr":"Toutes les 5 secondes","es":"Cada 5 segundos"},"Every 8 seconds":{"nl":"Elke 8 seconden","de":"Alle 8 Sekunden","fr":"Toutes les 8 secondes","es":"Cada 8 segundos"},"Every 10 seconds":{"nl":"Elke 10 seconden","de":"Alle 10 Sekunden","fr":"Toutes les 10 secondes","es":"Cada 10 segundos"},"Every 15 seconds":{"nl":"Elke 15 seconden","de":"Alle 15 Sekunden","fr":"Toutes les 15 secondes","es":"Cada 15 segundos"},"Every 20 seconds":{"nl":"Elke 20 seconden","de":"Alle 20 Sekunden","fr":"Toutes les 20 secondes","es":"Cada 20 segundos"},"Every 30 seconds":{"nl":"Elke 30 seconden","de":"Alle 30 Sekunden","fr":"Toutes les 30 secondes","es":"Cada 30 segundos"},"▶ Start Auto":{"nl":"▶ Auto starten","de":"▶ Auto starten","fr":"▶ Démarrer auto","es":"▶ Iniciar auto"},"⏸ Stop Auto":{"nl":"⏸ Auto stoppen","de":"⏸ Auto stoppen","fr":"⏸ Arrêter auto","es":"⏸ Detener auto"},"🔊 Speak each number aloud":{"nl":"🔊 Elk nummer hardop uitspreken","de":"🔊 Jede Zahl laut vorlesen","fr":"🔊 Annoncer chaque numéro à voix haute","es":"🔊 Leer cada número en voz alta"},"Called numbers history (newest first)":{"nl":"Geschiedenis getrokken nummers (nieuwste eerst)","de":"Verlauf gezogener Zahlen (neueste zuerst)","fr":"Historique des numéros tirés (récent d'abord)","es":"Historial de números cantados (más reciente primero)"},"No numbers called yet.":{"nl":"Nog geen nummers getrokken.","de":"Noch keine Zahlen gezogen.","fr":"Aucun numéro tiré pour l'instant.","es":"Aún no se ha cantado ningún número."},"Full board":{"nl":"Volledig bord","de":"Gesamtes Brett","fr":"Tableau complet","es":"Tablero completo"},"ALL CALLED":{"nl":"ALLES GETROKKEN","de":"ALLE GEZOGEN","fr":"TOUS TIRÉS","es":"TODOS CANTADOS"},"PDF / Game Title":{"nl":"PDF / Speltitel","de":"PDF / Spieltitel","fr":"Titre PDF / jeu","es":"Título PDF / juego"},"Game mode for cards":{"nl":"Spelmodus voor kaarten","de":"Spielmodus für Karten","fr":"Mode de jeu pour cartes","es":"Modo de juego para cartones"},"US Bingo (1–75, 5×5, FREE center)":{"nl":"US Bingo (1–75, 5×5, GRATIS midden)","de":"US-Bingo (1–75, 5×5, FREI Mitte)","fr":"Bingo US (1–75, 5×5, centre LIBRE)","es":"Bingo EE.UU. (1–75, 5×5, centro LIBRE)"},"EU/UK Bingo (1–90, 3×9)":{"nl":"EU/UK Bingo (1–90, 3×9)","de":"EU/UK-Bingo (1–90, 3×9)","fr":"Bingo EU/UK (1–90, 3×9)","es":"Bingo EU/UK (1–90, 3×9)"},"Number of cards (6 per page)":{"nl":"Aantal kaarten (6 per pagina)","de":"Anzahl Karten (6 pro Seite)","fr":"Nombre de cartes (6 par page)","es":"Número de cartones (6 por página)"},"Starting card number":{"nl":"Startnummer kaart","de":"Startkartennummer","fr":"Numéro de carte de départ","es":"Número de cartón inicial"},"GENERATE PRINTABLE PDF":{"nl":"AFDRUKBARE PDF GENEREREN","de":"DRUCKBARES PDF ERSTELLEN","fr":"GÉNÉRER UN PDF IMPRIMABLE","es":"GENERAR PDF IMPRIMIBLE"},"Verify a card against called numbers":{"nl":"Controleer een kaart tegen getrokken nummers","de":"Karte gegen gezogene Zahlen prüfen","fr":"Vérifier une carte selon les numéros tirés","es":"Verificar un cartón con los números cantados"},"📷 Scan QR with Camera":{"nl":"📷 QR scannen met camera","de":"📷 QR mit Kamera scannen","fr":"📷 Scanner le QR avec la caméra","es":"📷 Escanear QR con la cámara"},"…or paste the card code manually":{"nl":"…of plak de kaartcode handmatig","de":"…oder Kartencode manuell einfügen","fr":"…ou collez le code de carte manuellement","es":"…o pega el código del cartón manualmente"},"Verify pasted code":{"nl":"Geplakte code controleren","de":"Eingefügten Code prüfen","fr":"Vérifier le code collé","es":"Verificar código pegado"},"card code here":{"nl":"kaartcode hier","de":"Kartencode hier","fr":"code de carte ici","es":"código del cartón aquí"},"Each card is black & white for easy printing and carries a unique QR code for instant verification.":{"nl":"Elke kaart is zwart-wit voor eenvoudig afdrukken en heeft een unieke QR-code voor directe controle.","de":"Jede Karte ist schwarz-weiß für einfaches Drucken und trägt einen eindeutigen QR-Code zur sofortigen Prüfung.","fr":"Chaque carte est en noir et blanc pour une impression facile et porte un QR code unique pour une vérification instantanée.","es":"Cada cartón es en blanco y negro para imprimir fácilmente y lleva un código QR único para verificación instantánea."},"Each card is black & white for easy printing and carries a unique QR code. Scan a card's QR code in the Verify tab to check it against the called numbers.":{"nl":"Elke kaart is zwart-wit voor eenvoudig afdrukken en heeft een unieke QR-code. Scan de QR-code van een kaart op het tabblad Controleren om deze te vergelijken met de getrokken nummers.","de":"Jede Karte ist schwarz-weiß für einfaches Drucken und trägt einen eindeutigen QR-Code. Scannen Sie den QR-Code einer Karte im Prüfen-Tab, um sie mit den gezogenen Zahlen abzugleichen.","fr":"Chaque carte est en noir et blanc pour une impression facile et porte un QR code unique. Scannez le QR code d'une carte dans l'onglet Vérifier pour la comparer aux numéros tirés.","es":"Cada cartón es en blanco y negro para imprimir fácilmente y lleva un código QR único. Escanea el código QR de un cartón en la pestaña Verificar para compararlo con los números cantados."}};
+window.ENH_TF = [{"en":"Players win when they complete: ","nl":"Spelers winnen als ze dit voltooien: ","de":"Spieler gewinnen, wenn sie Folgendes vervollständigen: ","fr":"Les joueurs gagnent en complétant : ","es":"Los jugadores ganan al completar: "},{"en":"Verifying against pattern: ","nl":"Controleren tegen patroon: ","de":"Prüfung gegen Muster: ","fr":"Vérification selon le motif : ","es":"Verificando con el patrón: "},{"en":" called","nl":" getrokken","de":" gezogen","fr":" tirés","es":" cantados"},{"en":"-ball). Change it in the Caller tab.","nl":"-ballen). Wijzig dit op het tabblad Omroeper.","de":"-Kugeln). Ändern Sie es im Ansager-Tab.","fr":"-boules). Modifiez-le dans l'onglet Annonceur.","es":"-bolas). Cámbialo en la pestaña Locutor."},{"en":"Generating ","nl":"Bezig met genereren van ","de":"Erstelle ","fr":"Génération de ","es":"Generando "},{"en":" cards…","nl":" kaarten…","de":" Karten…","fr":" cartes…","es":" cartones…"},{"en":" cards).","nl":" kaarten).","de":" Karten).","fr":" cartes).","es":" cartones)."},{"en":"Error: ","nl":"Fout: ","de":"Fehler: ","fr":"Erreur : ","es":"Error: "},{"en":"Scan to verify","nl":"Scan om te controleren","de":"Zum Prüfen scannen","fr":"Scanner pour vérifier","es":"Escanear para verificar"},{"en":"🎉 BINGO! Valid","nl":"🎉 BINGO! Geldig","de":"🎉 BINGO! Gültig","fr":"🎉 BINGO ! Valide","es":"🎉 ¡BINGO! Válido"},{"en":"🎉 FULL HOUSE","nl":"🎉 VOLLE KAART","de":"🎉 VOLLKARTE","fr":"🎉 CARTON PLEIN","es":"🎉 CARTÓN LLENO"},{"en":"🎉 Valid","nl":"🎉 Geldig","de":"🎉 Gültig","fr":"🎉 Valide","es":"🎉 Válido"},{"en":"Not yet","nl":"Nog niet","de":"Noch nicht","fr":"Pas encore","es":"Todavía no"},{"en":" incomplete","nl":" onvolledig","de":" unvollständig","fr":" incomplet","es":" incompleto"},{"en":" full row(s)","nl":" volle rij(en)","de":" volle Reihe(n)","fr":" rangée(s) complète(s)","es":" fila(s) completa(s)"},{"en":"Card #","nl":"Kaart #","de":"Karte #","fr":"Carte n°","es":"Cartón n.º"},{"en":"Any Line (row/col/diag)","nl":"Elke lijn (rij/kolom/diag)","de":"Beliebige Linie (Reihe/Spalte/Diag)","fr":"Toute ligne (rangée/col/diag)","es":"Cualquier línea (fila/col/diag)"},{"en":"Four Corners","nl":"Vier hoeken","de":"Vier Ecken","fr":"Quatre coins","es":"Cuatro esquinas"},{"en":"X (both diagonals)","nl":"X (beide diagonalen)","de":"X (beide Diagonalen)","fr":"X (deux diagonales)","es":"X (ambas diagonales)"},{"en":"Plus / Cross (+)","nl":"Plus / Kruis (+)","de":"Plus / Kreuz (+)","fr":"Plus / Croix (+)","es":"Más / Cruz (+)"},{"en":"Postage Stamp (top-right 2x2)","nl":"Postzegel (rechtsboven 2x2)","de":"Briefmarke (oben rechts 2x2)","fr":"Timbre (haut-droite 2x2)","es":"Sello (sup-der 2x2)"},{"en":"Blackout / Full House","nl":"Volle kaart / Full House","de":"Vollkarte / Full House","fr":"Carton plein / Full House","es":"Cartón lleno / Full House"},{"en":"Outer Frame","nl":"Buitenrand","de":"Äußerer Rahmen","fr":"Cadre extérieur","es":"Marco exterior"},{"en":"One Line (any row)","nl":"Eén lijn (elke rij)","de":"Eine Linie (beliebige Reihe)","fr":"Une ligne (toute rangée)","es":"Una línea (cualquier fila)"},{"en":"Full House (all 15)","nl":"Full House (alle 15)","de":"Full House (alle 15)","fr":"Full House (les 15)","es":"Full House (los 15)"},{"en":"Two Lines","nl":"Twee lijnen","de":"Zwei Linien","fr":"Deux lignes","es":"Dos líneas"},{"en":"Letter T","nl":"Letter T","de":"Buchstabe T","fr":"Lettre T","es":"Letra T"},{"en":"Letter L","nl":"Letter L","de":"Buchstabe L","fr":"Lettre L","es":"Letra L"}];
+window.ENH_MENU = {"title":{"en":"Menu","nl":"Menu","de":"Menü","fr":"Menu","es":"Menú"},"language":{"en":"Language","nl":"Taal","de":"Sprache","fr":"Langue","es":"Idioma"},"game":{"en":"Game settings","nl":"Spelinstellingen","de":"Spieleinstellungen","fr":"Paramètres du jeu","es":"Ajustes del juego"},"print":{"en":"Print","nl":"Afdrukken","de":"Drucken","fr":"Impression","es":"Impresión"},"cardsbtn":{"en":"Cards / PDF","nl":"Kaarten / PDF","de":"Karten / PDF","fr":"Cartes / PDF","es":"Cartones / PDF"},"verifybtn":{"en":"Verify a card","nl":"Kaart controleren","de":"Karte prüfen","fr":"Vérifier une carte","es":"Verificar un cartón"},"back":{"en":"Back to Caller","nl":"Terug naar Omroeper","de":"Zurück zum Ansager","fr":"Retour à l'annonceur","es":"Volver al locutor"},"auto":{"en":"Automatic calling","nl":"Automatisch omroepen","de":"Automatische Ansage","fr":"Annonce automatique","es":"Canto automático"},"patternlabel":{"en":"Winning pattern","nl":"Winnend patroon","de":"Gewinnmuster","fr":"Motif gagnant","es":"Patrón ganador"}};
+</script>
+<script>
+
+(function(){
+  "use strict";
+  function init(){
+    var LANGS = window.ENH_I18N, T = window.ENH_T, TF = window.ENH_TF, MENU_T = window.ENH_MENU;
+    var DEFAULT_LANG = 'nl';
+    var PDF_DEFAULT = 'Alderts Bingo Paradijs';
+
+    // ---------- i18n engine ----------
+    var engByAny = {};
+    Object.keys(T).forEach(function(en){
+      engByAny[en.trim()] = en;
+      Object.keys(T[en]).forEach(function(l){ engByAny[T[en][l].trim()] = en; });
+    });
+    function exact(text, lang){
+      var key = engByAny[text.trim()];
+      if(!key) return null;
+      if(lang==='en') return key;
+      return (T[key] && T[key][lang]) ? T[key][lang] : key;
+    }
+    function fragToEnglish(s){
+      var out = s;
+      TF.forEach(function(f){ ['nl','de','fr','es'].forEach(function(l){ if(f[l] && out.indexOf(f[l])>-1) out = out.split(f[l]).join('\u0000'+f.en+'\u0001'); }); });
+      return out.split('\u0000').join('').split('\u0001').join('');
+    }
+    function fragFromEnglish(s, lang){
+      if(lang==='en') return s;
+      var out = s;
+      TF.slice().sort(function(a,b){return b.en.length-a.en.length;}).forEach(function(f){ if(f.en && out.indexOf(f.en)>-1 && f[lang]) out = out.split(f.en).join(f[lang]); });
+      return out;
+    }
+    function translate(text, lang){
+      if(text==null) return text;
+      var ex = exact(text, lang); if(ex!==null) return ex;
+      return fragFromEnglish(fragToEnglish(text), lang);
+    }
+    window.__translateString = translate;
+    window.__currentLang = 'en';
+
+    var wrap = document.querySelector('.wrap');
+    var snapped = false;
+    function snapshotWrap(){
+      if(snapped) return;
+      var w = document.createTreeWalker(wrap, NodeFilter.SHOW_TEXT);
+      var n; while(n=w.nextNode()){ if(n.textContent.trim()) n.__en = n.textContent; }
+      wrap.querySelectorAll('[placeholder]').forEach(function(e){ e.__enPh = e.getAttribute('placeholder'); });
+      snapped = true;
+    }
+    var drawer; // assigned later
+    function applyMenuLang(lang){
+      document.querySelectorAll('[data-i18n-menu]').forEach(function(el){
+        var k = el.getAttribute('data-i18n-menu'); var m = MENU_T[k];
+        if(m && m[lang]) el.textContent = m[lang];
+      });
+    }
+    function translateContainer(root, lang){
+      var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); var n;
+      while(n=w.nextNode()){
+        if(n.parentElement && (n.parentElement.hasAttribute('data-i18n-menu') || (n.parentElement.closest && n.parentElement.closest('#langBar')))) continue;
+        var base = n.__en!=null ? n.__en : n.textContent;
+        if(!base.trim()) continue;
+        var lead=base.match(/^\s*/)[0], tail=base.match(/\s*$/)[0];
+        n.textContent = lead + translate(base.trim(), lang) + tail;
+      }
+      root.querySelectorAll('[placeholder]').forEach(function(e){
+        var b = e.__enPh!=null ? e.__enPh : e.getAttribute('placeholder');
+        if(b) e.setAttribute('placeholder', translate(b, lang));
+      });
+    }
+    window.__applyLang = function(lang){
+      snapshotWrap();
+      window.__currentLang = lang;
+      window.__obsPause = true;
+      translateContainer(wrap, lang);
+      if(drawer && drawer.__snapped) translateContainer(drawer, lang);
+      applyMenuLang(lang);
+      document.documentElement.lang = LANGS[lang].code.split('-')[0];
+      window.__speechLang = LANGS[lang].code;
+      document.querySelectorAll('#langBar button').forEach(function(b){ b.classList.toggle('active', b.dataset.lang===lang); });
+      try{ localStorage.setItem('bingoLang', lang); }catch(e){}
+      if(window.__syncPatternBadge) window.__syncPatternBadge();
+      setTimeout(function(){ window.__obsPause=false; }, 30);
+    };
+    window.__applyMenuLang = applyMenuLang;
+
+    // mark this as part 1 done
+    window.__ENH_PART1 = true;
+    window.__ENH_DRAWER_SETTER = function(d){ drawer = d; };
+    // continue with layout in part2 (same closure not needed; expose helpers)
+    ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+
+
+function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
+  var wrap = document.querySelector('.wrap');
+  var h1 = wrap.querySelector('h1');
+  var caller = document.getElementById('panel-caller');
+
+  // ---------- language bar ----------
+  var langBar = document.createElement('div'); langBar.id='langBar';
+  Object.keys(LANGS).forEach(function(l){
+    var b=document.createElement('button'); b.dataset.lang=l;
+    b.innerHTML='<span style="font-size:15px">'+LANGS[l].flag+'</span> '+LANGS[l].name;
+    b.addEventListener('click', function(){ window.__applyLang(l); });
+    langBar.appendChild(b);
+  });
+
+  // ---------- app bar (title + hamburger) ----------
+  var bar=document.createElement('div'); bar.id='appbar';
+  h1.insertAdjacentElement('beforebegin', bar);
+  bar.appendChild(h1);
+  var mb=document.createElement('button'); mb.id='menuBtn'; mb.setAttribute('aria-label','Menu'); mb.innerHTML='&#9776;';
+  bar.appendChild(mb);
+
+  // ---------- identify cards ----------
+  var cards = Array.prototype.slice.call(caller.children);
+  var modeCard = cards.filter(function(c){return c.querySelector('#mode');})[0];
+  var patternCard = document.getElementById('callerPatternCard') || cards.filter(function(c){return c.querySelector('#patternSel');})[0];
+  var autoCard = document.getElementById('autoCallCard') || cards.filter(function(c){return c.querySelector('#autoInterval');})[0];
+  var mainCard = cards.filter(function(c){return c.querySelector('#drawBtn');})[0];
+  mainCard.id='mainDrawCard';
+
+  // ---------- settings drawer ----------
+  var ov=document.createElement('div'); ov.id='settingsOverlay';
+  var drawer=document.createElement('div'); drawer.id='settingsDrawer';
+  ov.appendChild(drawer);
+  document.body.appendChild(ov);
+  window.__ENH_DRAWER_SETTER(drawer);
+
+  function sect(key, fallback){ var d=document.createElement('div'); d.className='drawer-section-title'; d.setAttribute('data-i18n-menu',key); d.textContent=fallback; return d; }
+
+  var head=document.createElement('div'); head.className='drawer-head';
+  head.innerHTML='<h2 data-i18n-menu="title">Menu</h2><button id="closeDrawer" aria-label="Close">&times;</button>';
+  drawer.appendChild(head);
+  drawer.appendChild(sect('language','Language'));
+  drawer.appendChild(langBar);
+  drawer.appendChild(sect('game','Game settings'));
+  if(modeCard) drawer.appendChild(modeCard);
+  if(patternCard) drawer.appendChild(patternCard);
+  drawer.appendChild(sect('auto','Automatic calling'));
+  if(autoCard) drawer.appendChild(autoCard);
+  drawer.appendChild(sect('print','Print'));
+  var cb=document.createElement('button'); cb.id='drawerCardsBtn'; cb.innerHTML='&#128424;&#65039; <span data-i18n-menu="cardsbtn">Cards / PDF</span>';
+  drawer.appendChild(cb);
+
+  // ---------- pattern badge in main card ----------
+  var badge=document.createElement('div'); badge.id='patternBadge';
+  badge.innerHTML='<div class="pb-mini"></div><div class="pb-text"><span class="pb-label" data-i18n-menu="patternlabel">Winning pattern</span><span class="pb-name" id="pbName"></span></div>';
+  mainCard.insertBefore(badge, mainCard.firstChild);
+  window.__syncPatternBadge=function(){
+    var sel=document.getElementById('patternSel'); var preview=document.getElementById('patternPreview');
+    var pbName=document.getElementById('pbName'); var pbMini=document.querySelector('#patternBadge .pb-mini');
+    if(sel && pbName) pbName.textContent = sel.options[sel.selectedIndex].textContent.trim();
+    if(preview && pbMini) pbMini.innerHTML = preview.innerHTML;
+  };
+  var psel=document.getElementById('patternSel');
+  if(psel) psel.addEventListener('change', function(){ setTimeout(window.__syncPatternBadge,30); });
+
+  // ---------- verify shortcut button ----------
+  var vb=document.createElement('button'); vb.id='verifyShortcut';
+  vb.innerHTML='&#9989; <span data-i18n-menu="verifybtn">Verify a card</span>';
+  mainCard.appendChild(vb);
+
+  // ---------- back buttons on print + verify ----------
+  function addBack(panelId){
+    var panel=document.getElementById(panelId); if(!panel) return;
+    var b=document.createElement('button'); b.className='backBtn';
+    b.innerHTML='&#8592; <span data-i18n-menu="back">Back to Caller</span>';
+    b.style.cssText='width:auto;padding:10px 16px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-weight:700;font-size:14px;cursor:pointer;margin-bottom:14px;display:inline-flex;align-items:center;gap:8px;';
+    b.onclick=function(){ document.getElementById('tab-caller').click(); window.scrollTo({top:0,behavior:'smooth'}); };
+    panel.insertBefore(b, panel.firstChild);
+  }
+  addBack('panel-print'); addBack('panel-verify');
+
+  // ---------- wire events ----------
+  function openDrawer(){ ov.classList.add('open'); }
+  function closeDrawer(){ ov.classList.remove('open'); }
+  mb.onclick=openDrawer;
+  document.getElementById('closeDrawer').onclick=closeDrawer;
+  ov.addEventListener('click', function(e){ if(e.target===ov) closeDrawer(); });
+  function showPanel(id){ var t=document.getElementById(id); if(t) t.click(); }
+  cb.onclick=function(){ showPanel('tab-print'); closeDrawer(); window.scrollTo({top:0,behavior:'smooth'}); };
+  vb.onclick=function(){ showPanel('tab-verify'); window.scrollTo({top:0,behavior:'smooth'}); };
+
+  // ---------- speech language hook ----------
+  if(!window.__speechHooked && window.SpeechSynthesisUtterance){
+    var Orig=window.SpeechSynthesisUtterance;
+    function Patched(text){ var u=new Orig(text); try{ if(window.__speechLang) u.lang=window.__speechLang; }catch(e){} return u; }
+    Patched.prototype=Orig.prototype; window.SpeechSynthesisUtterance=Patched; window.__speechHooked=true;
+  }
+
+  // ---------- PDF default title ----------
+  var pdf=document.getElementById('pdfTitle');
+  if(pdf){ pdf.value=PDF_DEFAULT; pdf.defaultValue=PDF_DEFAULT; }
+
+  // ---------- snapshot drawer English baseline ----------
+  drawer.__snapped=false;
+  (function(){ var w=document.createTreeWalker(drawer,NodeFilter.SHOW_TEXT); var n;
+    while(n=w.nextNode()){ if(!n.textContent.trim())continue;
+      if(n.parentElement && (n.parentElement.hasAttribute('data-i18n-menu')||(n.parentElement.closest&&n.parentElement.closest('#langBar'))))continue;
+      n.__en=n.textContent; }
+    drawer.__snapped=true; })();
+
+  // ---------- observer to translate dynamic content ----------
+  var obs=new MutationObserver(function(muts){
+    if(window.__obsPause||window.__currentLang==='en')return;
+    window.__obsPause=true;
+    muts.forEach(function(m){
+      if(m.type==='childList') Array.prototype.forEach.call(m.addedNodes,function(node){
+        if(node.nodeType===3){ var c=node.textContent.trim(); if(c){var t=window.__translateString(c,window.__currentLang); if(t!==c){var l=node.textContent.match(/^\s*/)[0],ta=node.textContent.match(/\s*$/)[0];node.textContent=l+t+ta;}} return; }
+        if(node.nodeType!==1)return;
+        var w=document.createTreeWalker(node,NodeFilter.SHOW_TEXT),n;
+        while(n=w.nextNode()){var c=n.textContent.trim();if(!c)continue;var t=window.__translateString(c,window.__currentLang);if(t!==c){var l=n.textContent.match(/^\s*/)[0],ta=n.textContent.match(/\s*$/)[0];n.textContent=l+t+ta;}}
+      });
+    });
+    setTimeout(function(){window.__obsPause=false;},0);
+  });
+  obs.observe(wrap,{childList:true,subtree:true,characterData:false});
+
+  // ---------- boot: default language ----------
+  var saved=null; try{ saved=localStorage.getItem('bingoLang'); }catch(e){}
+  window.__syncPatternBadge();
+  window.__applyLang(saved || DEFAULT_LANG);
+}
+
+</script>
+</body>
+</html>
