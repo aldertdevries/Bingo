@@ -349,6 +349,8 @@ button.btn.gray{background:#475569;}
         <button class="btn gray" onclick="undoDraw()">Undo</button>
         <button class="btn red" onclick="resetGame()">Reset</button>
       </div>
+      <button class="btn green" id="mainAutoBtn" onclick="toggleAuto()" style="margin-top:8px;">▶ Start Auto</button>
+      <div class="countdown" id="mainAutoCountdown"></div>
     </div>
     <div class="card" id="autoCallCard">
       <label>Automatic calling</label>
@@ -367,7 +369,7 @@ button.btn.gray{background:#475569;}
         <div class="grow"><button class="btn green" id="autoBtn" onclick="toggleAuto()" style="margin-top:0;">▶ Start Auto</button></div>
       </div>
       <div class="countdown" id="autoCountdown"></div>
-      <label class="toggle"><input type="checkbox" id="voiceToggle"> 🔊 Speak each number aloud</label>
+      <label class="toggle"><input type="checkbox" id="voiceToggle" checked> 🔊 Speak each number aloud</label>
     </div>
     <div class="card">
       <label>Called numbers history (newest first)</label>
@@ -679,6 +681,7 @@ window.__renderResult=function(card){
   }
   html+='<div class="muted" style="margin-top:6px;">Checked against '+window.__getCalled().length+' called number(s).</div>';
   o.innerHTML=html;
+  if(window.showCeleb) window.showCeleb(res.win?'win':'lose');
 };
 window.verifyManual=function(){ window.__renderResult(window.__decodeCard(document.getElementById('manualCode').value)); };
 window.__scannerActive=false; var html5Qr=null;
@@ -733,9 +736,13 @@ function speakNumber(){
 }
 window.speakNumber=speakNumber;
 function setBtn(running){
-  var b=document.getElementById('autoBtn');
-  if(running){ b.textContent='⏸ Stop Auto'; b.classList.remove('green'); b.classList.add('red'); }
-  else { b.textContent='▶ Start Auto'; b.classList.remove('red'); b.classList.add('green'); }
+  var label=running?'⏸ Stop Auto':'▶ Start Auto';
+  ['autoBtn','mainAutoBtn'].forEach(function(id){
+    var b=document.getElementById(id); if(!b) return;
+    b.textContent=label;
+    if(running){b.classList.remove('green');b.classList.add('red');}
+    else{b.classList.remove('red');b.classList.add('green');}
+  });
   document.getElementById('drawBtn').style.opacity=running?'0.5':'1';
 }
 function clearTimers(){ if(window.__autoState.timer){clearInterval(window.__autoState.timer);window.__autoState.timer=null;} if(window.__autoState.tick){clearInterval(window.__autoState.tick);window.__autoState.tick=null;} }
@@ -751,12 +758,15 @@ window.startAuto=function(){
   doAutoDraw();
   if(!window.__autoState.running) return;
   window.__autoState.secsLeft=secs;
-  function uc(){ document.getElementById('autoCountdown').textContent='Next number in '+window.__autoState.secsLeft+'s…'; }
+  function uc(){
+    var t='Next number in '+window.__autoState.secsLeft+'s…';
+    ['autoCountdown','mainAutoCountdown'].forEach(function(id){ var el=document.getElementById(id); if(el) el.textContent=t; });
+  }
   uc();
   window.__autoState.tick=setInterval(function(){ window.__autoState.secsLeft--; if(window.__autoState.secsLeft<=0) window.__autoState.secsLeft=secs; uc(); },1000);
   window.__autoState.timer=setInterval(function(){ doAutoDraw(); window.__autoState.secsLeft=secs; },secs*1000);
 };
-window.stopAuto=function(){ clearTimers(); window.__autoState.running=false; setBtn(false); document.getElementById('autoCountdown').textContent=''; try{ window.speechSynthesis&&window.speechSynthesis.cancel(); }catch(e){} };
+window.stopAuto=function(){ clearTimers(); window.__autoState.running=false; setBtn(false); ['autoCountdown','mainAutoCountdown'].forEach(function(id){ var el=document.getElementById(id); if(el) el.textContent=''; }); try{ window.speechSynthesis&&window.speechSynthesis.cancel(); }catch(e){} };
 window.toggleAuto=function(){ window.__autoState.running?window.stopAuto():window.startAuto(); };
 document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('autoInterval').addEventListener('change',function(){ if(window.__autoState.running){ window.stopAuto(); window.startAuto(); } });
@@ -999,6 +1009,131 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
   window.__applyLang(saved || DEFAULT_LANG);
 }
 
+</script>
+<style>
+#celebOverlay{
+  position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .35s ease;
+}
+#celebOverlay.active{opacity:1;pointer-events:auto;}
+#celebOverlay.win-bg{background:radial-gradient(ellipse at 50% 40%,rgba(13,17,40,.94),rgba(5,8,18,.98));}
+#celebOverlay.lose-bg{background:radial-gradient(ellipse at 50% 40%,rgba(140,10,10,.92),rgba(60,4,4,.97));}
+#confettiCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+#celebBox{position:relative;z-index:1;text-align:center;padding:44px 52px;border-radius:28px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.10);
+  backdrop-filter:blur(16px);box-shadow:0 30px 80px rgba(0,0,0,.5);}
+#celebEmoji{font-size:72px;line-height:1;margin-bottom:14px;
+  animation:cPop .55s cubic-bezier(.34,1.56,.64,1) both;}
+#celebMsg{font-size:52px;font-weight:900;letter-spacing:-1px;line-height:1;margin-bottom:10px;
+  animation:cPop .55s .08s cubic-bezier(.34,1.56,.64,1) both;}
+.win-bg #celebMsg{
+  background:linear-gradient(135deg,#6d8bff,#ffc23c 50%,#1fbf75);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 28px rgba(109,139,255,.55));}
+.lose-bg #celebMsg{color:#fff;text-shadow:0 0 32px rgba(255,80,80,.85);}
+#celebSub{font-size:18px;font-weight:600;color:rgba(255,255,255,.75);margin-bottom:6px;
+  animation:cFade .4s .35s both;}
+#celebDismiss{margin-top:22px;font-size:12px;color:rgba(255,255,255,.35);animation:cFade .4s 1.2s both;}
+@keyframes cPop{from{transform:scale(.25);opacity:0;}to{transform:scale(1);opacity:1;}}
+@keyframes cFade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+@keyframes cShake{
+  0%,100%{transform:translateX(0) rotate(0);}
+  15%{transform:translateX(-12px) rotate(-1.5deg);}
+  30%{transform:translateX(12px) rotate(1.5deg);}
+  45%{transform:translateX(-9px) rotate(-1deg);}
+  60%{transform:translateX(9px) rotate(1deg);}
+  75%{transform:translateX(-5px) rotate(-.5deg);}
+  90%{transform:translateX(5px) rotate(.5deg);}
+}
+.lose-bg #celebBox{animation:cShake .6s .15s ease both;}
+</style>
+
+<div id="celebOverlay">
+  <canvas id="confettiCanvas"></canvas>
+  <div id="celebBox">
+    <div id="celebEmoji"></div>
+    <div id="celebMsg"></div>
+    <div id="celebSub"></div>
+    <div id="celebDismiss">Tik om te sluiten</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var ov=document.getElementById('celebOverlay');
+  var canvas=document.getElementById('confettiCanvas');
+  var _timer=null,_raf=null;
+
+  function hideCeleb(){
+    ov.classList.remove('active');
+    if(_timer){clearTimeout(_timer);_timer=null;}
+    if(_raf){cancelAnimationFrame(_raf);_raf=null;}
+    var ctx=canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  window.hideCeleb=hideCeleb;
+  ov.addEventListener('click',hideCeleb);
+
+  window.showCeleb=function(type){
+    hideCeleb();
+    var isWin=type==='win';
+    ov.className='active '+(isWin?'win-bg':'lose-bg');
+    var lang=window.__currentLang||'nl';
+    var msgs={
+      winMsg:{nl:'BINGO!',en:'BINGO!',de:'BINGO!',fr:'BINGO!',es:'¡BINGO!'},
+      winSub:{nl:'Gefeliciteerd! Geldig patroon.',en:'Congratulations! Valid pattern.',de:'Glückwunsch! Gültiges Muster.',fr:'Félicitations ! Motif valide.',es:'¡Enhorabuena! Patrón válido.'},
+      loseMsg:{nl:'FALSE BINGO!',en:'FALSE BINGO!',de:'FALSCHES BINGO!',fr:'FAUX BINGO !',es:'¡FALSO BINGO!'},
+      loseSub:{nl:'Patroon nog niet compleet.',en:'Pattern not yet complete.',de:'Muster noch nicht vollständig.',fr:'Motif incomplet.',es:'Patrón aún incompleto.'}
+    };
+    document.getElementById('celebEmoji').textContent=isWin?'🎉':'❌';
+    document.getElementById('celebMsg').textContent=isWin?(msgs.winMsg[lang]||msgs.winMsg.en):(msgs.loseMsg[lang]||msgs.loseMsg.en);
+    document.getElementById('celebSub').textContent=isWin?(msgs.winSub[lang]||msgs.winSub.en):(msgs.loseSub[lang]||msgs.loseSub.en);
+    if(isWin) startConfetti();
+    _timer=setTimeout(hideCeleb,isWin?7000:4500);
+  };
+
+  var COLORS=['#6d8bff','#9b6dff','#ffc23c','#1fbf75','#ff6b9d','#e0e8ff','#fff'];
+
+  function startConfetti(){
+    canvas.width=window.innerWidth;
+    canvas.height=window.innerHeight;
+    var ctx=canvas.getContext('2d');
+    var pts=[];
+    for(var i=0;i<180;i++){
+      pts.push({
+        x:Math.random()*canvas.width,
+        y:-20-Math.random()*canvas.height*0.6,
+        w:7+Math.random()*9,h:4+Math.random()*7,
+        color:COLORS[Math.floor(Math.random()*COLORS.length)],
+        rot:Math.random()*Math.PI*2,
+        vx:(Math.random()-.5)*3.5,
+        vy:2.2+Math.random()*4.5,
+        vr:(Math.random()-.5)*.18,
+        op:1
+      });
+    }
+    var t0=null,dur=6200;
+    function frame(t){
+      if(!t0)t0=t;
+      var el=t-t0;
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      var alive=false;
+      pts.forEach(function(p){
+        p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;
+        if(el>dur*.55) p.op=Math.max(0,p.op-.014);
+        if(p.y<canvas.height+40&&p.op>0) alive=true;
+        ctx.save();ctx.globalAlpha=p.op;
+        ctx.translate(p.x,p.y);ctx.rotate(p.rot);
+        ctx.fillStyle=p.color;
+        ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+        ctx.restore();
+      });
+      if(alive&&el<dur){_raf=requestAnimationFrame(frame);}
+      else{ctx.clearRect(0,0,canvas.width,canvas.height);_raf=null;}
+    }
+    _raf=requestAnimationFrame(frame);
+  }
+})();
 </script>
 </body>
 </html>
