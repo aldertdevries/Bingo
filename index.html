@@ -235,9 +235,14 @@ button.btn.gray{background:#475569;}
 
   /* Top app bar */
   #appbar{
-    display:flex;align-items:center;gap:12px;margin:8px 0 14px;
+    display:flex;align-items:baseline;gap:10px;margin:8px 0 14px;
   }
-  #appbar h1{margin:0!important;flex:1;text-align:left!important;font-size:26px!important;}
+  #appbar h1{margin:0!important;flex:0 0 auto;text-align:left!important;font-size:24px!important;}
+  #appbar #callerGameTitle{
+    flex:0 1 auto;min-width:0;margin:0 0 0 auto!important;text-align:right!important;
+    font-size:16px!important;font-weight:800;line-height:1.2;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;align-self:center;
+  }
   #menuBtn{
     flex:0 0 auto;width:46px;height:46px;border-radius:14px;cursor:pointer;
     background:var(--surface);border:1px solid var(--border);color:var(--text);
@@ -249,14 +254,11 @@ button.btn.gray{background:#475569;}
   #langBar{display:none!important;}
   .tabs{display:none!important;}
 
-  /* Verify-knop (zit in het actie-raster) */
+  /* Verify-knop: zelfde groene kleur als "Auto" — alleen layout hier,
+     kleur komt van class .btn.green */
   #verifyShortcut{
-    width:100%;border-radius:12px;border:1px solid var(--border);
-    background:linear-gradient(135deg, rgba(109,139,255,0.18), rgba(155,109,255,0.18));
-    color:var(--text);font-weight:800;cursor:pointer;margin-top:0;
-    display:flex;align-items:center;justify-content:center;gap:8px;transition:all .18s ease;
+    display:flex!important;align-items:center;justify-content:center;gap:8px;
   }
-  #verifyShortcut:hover{border-color:var(--brand);filter:brightness(1.08);transform:translateY(-1px);}
 
   /* compact actie-raster: 4 knoppen in 2 rijen (2×2) */
   .action-grid{
@@ -389,16 +391,21 @@ body.theme-katten{--brand:#ff9a3d;--brand2:#ff6f91;--green:#ff9a3d;--green2:#ff6
 body.theme-nijntje{--brand:#ffc62e;--brand2:#ff8f3c;--green:#ffc62e;--green2:#ff8f3c;--amber:#ffc62e;--glow:rgba(255,198,46,.42);--btnText:#1a0d00;
   background:radial-gradient(900px 520px at 12% -5%,rgba(255,198,46,.20),transparent 55%),radial-gradient(760px 420px at 95% 8%,rgba(255,143,60,.16),transparent 52%),linear-gradient(165deg,#1c1304,#241704 82%)!important;}
 
-/* ── achtergrond decoratie: 2 verticale kolommen, één aan elke zijde,
+/* ── achtergrond decoratie: 2 verticale kolommen vlak naast de app,
       over de volle hoogte, ACHTER de content (z-index:-1) ── */
 #bgDecor{
   position:fixed;inset:0;pointer-events:none;z-index:-1;
-  display:flex;justify-content:space-between;overflow:hidden;
+  display:flex;justify-content:center;overflow:hidden;
 }
+/* baan iets breder dan de app (820px) zodat de kolommen er net buiten vallen */
+#bgDecor .decor-track{position:relative;width:100%;max-width:948px;height:100%;}
 #bgDecor .decor-col{
+  position:absolute;top:0;height:100%;width:60px;
   display:flex;flex-direction:column;justify-content:space-around;align-items:center;
-  height:100%;width:60px;padding:18px 0;
+  padding:18px 0;
 }
+#bgDecor .decor-col.left{left:0;}
+#bgDecor .decor-col.right{right:0;}
 #bgDecor span{font-size:40px;line-height:1;opacity:.6;}
 
 /* theme picker strip */
@@ -416,15 +423,10 @@ body.theme-nijntje{--brand:#ffc62e;--brand2:#ff8f3c;--green:#ffc62e;--green2:#ff
 </style>
 <style id="patternBadgeCSS">
 
-  /* header-rij: winnend patroon + spelnaam naast elkaar */
-  #callerHeader{
-    display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:nowrap;
-    margin:0 0 6px;
-  }
-  #callerHeader #callerGameTitle{
-    margin:0!important;text-align:left!important;flex:0 1 auto;min-width:0;
-    font-size:17px!important;line-height:1.2;
-  }
+  /* statbar: getrokken | winnend patroon | resterend — netjes uitgelijnd */
+  #mainDrawCard .statbar{align-items:center;gap:8px;}
+  #mainDrawCard .statbar > div{flex:0 0 auto;}
+  #mainDrawCard .statbar #patternBadge{flex:0 1 auto;min-width:0;}
   #patternBadge{
     display:flex;align-items:center;justify-content:center;gap:8px;
     margin:0;padding:6px 11px;flex:0 1 auto;min-width:0;
@@ -477,8 +479,8 @@ body.theme-nijntje{--brand:#ffc62e;--brand2:#ff8f3c;--green:#ffc62e;--green2:#ff
       <button class="btn green" id="drawBtn" onclick="drawNumber();speakNumber()">DRAW NEXT NUMBER</button>
       <div class="action-grid">
         <button class="btn green act" id="mainAutoBtn" onclick="toggleAuto()">▶ Start Auto</button>
-        <button class="btn gray act" onclick="undoDraw()">Undo</button>
         <button class="btn red act" onclick="resetGame()">Reset</button>
+        <button class="btn red act" onclick="undoDraw()">Undo</button>
       </div>
       <div class="countdown" id="mainAutoCountdown"></div>
     </div>
@@ -1137,6 +1139,8 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
   var bar=document.createElement('div'); bar.id='appbar';
   h1.insertAdjacentElement('beforebegin', bar);
   bar.appendChild(h1);
+  var _gtBar=document.getElementById('callerGameTitle');
+  if(_gtBar) bar.appendChild(_gtBar); // spelnaam naast de titel
   var mb=document.createElement('button'); mb.id='menuBtn'; mb.setAttribute('aria-label','Menu'); mb.innerHTML='&#9776;';
   bar.appendChild(mb);
 
@@ -1185,16 +1189,18 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
   function buildDecor(emojis){
     bgDecor.innerHTML='';
     if(!emojis||!emojis.length) return;
+    var track=document.createElement('div'); track.className='decor-track';
     var perCol=Math.max(5, Math.floor(window.innerHeight/120));
     ['left','right'].forEach(function(side, ci){
-      var col=document.createElement('div'); col.className='decor-col';
+      var col=document.createElement('div'); col.className='decor-col '+side;
       for(var i=0;i<perCol;i++){
         var s=document.createElement('span');
         s.textContent=emojis[(i+ci)%emojis.length];
         col.appendChild(s);
       }
-      bgDecor.appendChild(col);
+      track.appendChild(col);
     });
+    bgDecor.appendChild(track);
   }
   // herbouw kolommen bij venster-resize zodat ze de volle hoogte blijven vullen
   window.addEventListener('resize', function(){
@@ -1231,11 +1237,13 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
   // ---------- header: winnend patroon + spelnaam naast elkaar ----------
   var badge=document.createElement('div'); badge.id='patternBadge';
   badge.innerHTML='<div class="pb-mini"></div><div class="pb-text"><span class="pb-label" data-i18n-menu="patternlabel">Winning pattern</span><span class="pb-name" id="pbName"></span></div>';
-  var header=document.createElement('div'); header.id='callerHeader';
-  mainCard.insertBefore(header, mainCard.firstChild);
-  header.appendChild(badge);
-  var _gt=document.getElementById('callerGameTitle');
-  if(_gt) header.appendChild(_gt); // spelnaam naast de badge plaatsen
+  // plaats de patroon-badge tussen "Getrokken" en "Resterend" in de statbar
+  var statbar=mainCard.querySelector('.statbar');
+  if(statbar && statbar.children.length>=2){
+    statbar.insertBefore(badge, statbar.children[1]);
+  } else {
+    mainCard.insertBefore(badge, mainCard.firstChild);
+  }
   window.__syncPatternBadge=function(){
     var sel=document.getElementById('patternSel'); var preview=document.getElementById('patternPreview');
     var pbName=document.getElementById('pbName'); var pbMini=document.querySelector('#patternBadge .pb-mini');
@@ -1245,11 +1253,15 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
   var psel=document.getElementById('patternSel');
   if(psel) psel.addEventListener('change', function(){ setTimeout(window.__syncPatternBadge,30); });
 
-  // ---------- verify shortcut button (in het actie-raster) ----------
-  var vb=document.createElement('button'); vb.id='verifyShortcut'; vb.className='act';
+  // ---------- verify shortcut button: groen, direct na "Auto" ----------
+  var vb=document.createElement('button'); vb.id='verifyShortcut'; vb.className='btn green act';
   vb.innerHTML='&#128269; <span data-i18n-menu="verifybtn">Verify a card</span>';
   var grid=mainCard.querySelector('.action-grid');
-  if(grid) grid.appendChild(vb); else mainCard.appendChild(vb);
+  if(grid){
+    var autoBtn=document.getElementById('mainAutoBtn');
+    if(autoBtn && autoBtn.nextSibling) grid.insertBefore(vb, autoBtn.nextSibling);
+    else grid.appendChild(vb);
+  } else mainCard.appendChild(vb);
 
   // ---------- back buttons on print + verify ----------
   function addBack(panelId){
