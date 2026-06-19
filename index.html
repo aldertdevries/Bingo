@@ -15,6 +15,17 @@
 <link rel="icon" type="image/png" href="/icon-512.png">
 <link rel="apple-touch-icon" href="/icon-512.png">
 
+<!-- PWA: offline beschikbaar + installeerbaar -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#6d8bff">
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+</script>
+
 <!-- Open Graph (Facebook, LinkedIn) -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Bingo Caller">
@@ -54,9 +65,10 @@
 <!-- ===== /SEO ===== -->
 
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<!-- Lokale bibliotheken: werken volledig offline (geen CDN nodig) -->
+<script src="lib/jspdf.umd.min.js"></script>
+<script src="lib/qrcode.min.js"></script>
+<script src="lib/html5-qrcode.min.js"></script>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:#0f172a;color:#e2e8f0;}
@@ -237,14 +249,23 @@ button.btn.gray{background:#475569;}
   #langBar{display:none!important;}
   .tabs{display:none!important;}
 
-  /* Prominent verify button under main card */
+  /* Verify-knop (zit in het actie-raster) */
   #verifyShortcut{
-    width:100%;padding:15px;border-radius:14px;border:1px solid var(--border);
+    width:100%;border-radius:12px;border:1px solid var(--border);
     background:linear-gradient(135deg, rgba(109,139,255,0.18), rgba(155,109,255,0.18));
-    color:var(--text);font-weight:800;font-size:16px;cursor:pointer;margin-top:12px;
-    display:flex;align-items:center;justify-content:center;gap:10px;transition:all .18s ease;
+    color:var(--text);font-weight:800;cursor:pointer;margin-top:0;
+    display:flex;align-items:center;justify-content:center;gap:8px;transition:all .18s ease;
   }
   #verifyShortcut:hover{border-color:var(--brand);filter:brightness(1.08);transform:translateY(-1px);}
+
+  /* compact actie-raster: 4 knoppen in 2 rijen (2×2) */
+  .action-grid{
+    display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px;
+  }
+  .action-grid .btn.act{
+    margin-top:0!important;padding:11px 8px!important;font-size:14px!important;
+    border-radius:12px!important;min-height:46px;line-height:1.15;
+  }
 
   /* Make the main draw card extra prominent */
   #mainDrawCard{
@@ -294,21 +315,129 @@ button.btn.gray{background:#475569;}
   #drawerCardsBtn:hover{border-color:var(--brand);background:var(--surface-2);}
   
 </style>
+<style id="themes">
+
+/* ──────────────────────────────────────────────
+   THEMA-SYSTEEM (simpel & robuust)
+   Elk thema zet alleen CSS-variabelen.
+   De bestaande layout gebruikt overal var(--brand),
+   var(--brand2), var(--green) → kleuren volgen vanzelf.
+   ────────────────────────────────────────────── */
+
+/* hoofdknoppen volgen de thema-accentkleur */
+body[class*="theme-"] #drawBtn,
+body[class*="theme-"] #mainDrawBtn,
+body[class*="theme-"] #autoBtn,
+body[class*="theme-"] #mainAutoBtn,
+body[class*="theme-"] #pdfBtn,
+body[class*="theme-"] button.btn.green{
+  background:linear-gradient(135deg,var(--brand),var(--brand2))!important;
+  box-shadow:0 8px 24px var(--glow)!important;
+  color:var(--btnText,#fff)!important;
+}
+/* TITEL: effen kleur — geen gradient-clip die als blok kan tonen */
+h1{
+  background:none!important;
+  -webkit-text-fill-color:var(--brand,#6d8bff)!important;
+  color:var(--brand,#6d8bff)!important;
+}
+
+/* bingo-rijletter + labels "Getrokken"/"Resterend": zelfde accentkleur */
+.current-letter{color:var(--brand,#6d8bff)!important;}
+.statbar div span{color:var(--brand,#6d8bff)!important;}
+
+/* GETROKKEN NUMMER als egale bingobal — altijd, in elk thema */
+#curNum,#mainDrawCard #curNum{
+  width:236px!important;height:236px!important;min-height:0!important;
+  margin:18px auto!important;padding:0!important;
+  border-radius:50%!important;
+  background:radial-gradient(circle at 36% 30%, rgba(255,255,255,.52), rgba(255,255,255,0) 46%),
+             linear-gradient(145deg, var(--brand,#6d8bff), var(--brand2,#9b6dff))!important;
+  -webkit-background-clip:border-box!important;background-clip:border-box!important;
+  -webkit-text-fill-color:#fff!important;color:#fff!important;
+  font-size:108px!important;font-weight:900!important;
+  display:flex!important;align-items:center;justify-content:center;
+  box-shadow:0 18px 40px var(--glow,rgba(109,139,255,.45)),
+             inset 0 -14px 28px rgba(0,0,0,.22),
+             inset 0 12px 24px rgba(255,255,255,.18)!important;
+  text-shadow:0 2px 10px rgba(0,0,0,.32)!important;
+}
+/* lichte thema's (goud/geel): donker nummer voor contrast op de bal */
+body.theme-sterren #mainDrawCard #curNum,body.theme-nijntje #mainDrawCard #curNum,
+body.theme-sterren #curNum,body.theme-nijntje #curNum{
+  -webkit-text-fill-color:#1a1000!important;color:#1a1000!important;
+  text-shadow:0 1px 3px rgba(255,255,255,.45)!important;
+}
+
+/* per-thema variabelen + sfeerachtergrond (verfijnde paletten) */
+/* Bloemen — roze → lavendel op warm pruim */
+body.theme-bloemen{--brand:#ff6fb5;--brand2:#b06ef0;--green:#ff6fb5;--green2:#b06ef0;--amber:#ff6fb5;--glow:rgba(255,111,181,.42);
+  background:radial-gradient(900px 520px at 12% -5%,rgba(255,111,181,.20),transparent 55%),radial-gradient(760px 420px at 95% 8%,rgba(176,110,240,.18),transparent 52%),linear-gradient(165deg,#1d0c20,#0e0712 82%)!important;}
+/* Ajax — clubrood → koraal op bijna-zwart warm */
+body.theme-ajax{--brand:#ec1c24;--brand2:#ff6a5e;--green:#ec1c24;--green2:#ff6a5e;--amber:#ec1c24;--glow:rgba(236,28,36,.45);
+  background:radial-gradient(900px 520px at 12% -5%,rgba(236,28,36,.22),transparent 55%),radial-gradient(700px 400px at 96% 6%,rgba(255,106,94,.14),transparent 50%),linear-gradient(165deg,#160203,#1f0506 82%)!important;}
+/* Vliegtuigen — azuur → cyaan op nachtblauw */
+body.theme-vliegtuigen{--brand:#2f86ff;--brand2:#19c8ff;--green:#2f86ff;--green2:#19c8ff;--amber:#2f86ff;--glow:rgba(47,134,255,.42);
+  background:radial-gradient(900px 520px at 12% -5%,rgba(47,134,255,.20),transparent 55%),radial-gradient(760px 420px at 95% 8%,rgba(25,200,255,.16),transparent 52%),linear-gradient(165deg,#03101f,#06182e 82%)!important;}
+/* Sterren — goud → violet op diep indigo */
+body.theme-sterren{--brand:#ffd23c;--brand2:#9b7bff;--green:#ffd23c;--green2:#9b7bff;--amber:#ffd23c;--glow:rgba(255,210,60,.42);--btnText:#1a1000;
+  background:radial-gradient(900px 520px at 12% -5%,rgba(255,210,60,.16),transparent 52%),radial-gradient(780px 440px at 95% 8%,rgba(123,93,255,.20),transparent 55%),linear-gradient(165deg,#070318,#04010d 82%)!important;}
+/* Katten — amber → koraalroze op warm bruin */
+body.theme-katten{--brand:#ff9a3d;--brand2:#ff6f91;--green:#ff9a3d;--green2:#ff6f91;--amber:#ff9a3d;--glow:rgba(255,154,61,.42);
+  background:radial-gradient(900px 520px at 12% -5%,rgba(255,154,61,.18),transparent 55%),radial-gradient(760px 420px at 95% 8%,rgba(255,111,145,.16),transparent 52%),linear-gradient(165deg,#170c07,#1e1008 82%)!important;}
+/* Nijntje — zonnig geel → warm oranje op zacht donkerbruin */
+body.theme-nijntje{--brand:#ffc62e;--brand2:#ff8f3c;--green:#ffc62e;--green2:#ff8f3c;--amber:#ffc62e;--glow:rgba(255,198,46,.42);--btnText:#1a0d00;
+  background:radial-gradient(900px 520px at 12% -5%,rgba(255,198,46,.20),transparent 55%),radial-gradient(760px 420px at 95% 8%,rgba(255,143,60,.16),transparent 52%),linear-gradient(165deg,#1c1304,#241704 82%)!important;}
+
+/* ── achtergrond decoratie: 2 verticale kolommen, één aan elke zijde,
+      over de volle hoogte, ACHTER de content (z-index:-1) ── */
+#bgDecor{
+  position:fixed;inset:0;pointer-events:none;z-index:-1;
+  display:flex;justify-content:space-between;overflow:hidden;
+}
+#bgDecor .decor-col{
+  display:flex;flex-direction:column;justify-content:space-around;align-items:center;
+  height:100%;width:60px;padding:18px 0;
+}
+#bgDecor span{font-size:40px;line-height:1;opacity:.6;}
+
+/* theme picker strip */
+#themePicker{display:flex;flex-wrap:wrap;gap:8px;margin:0;}
+.theme-btn{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  padding:8px 10px;border-radius:12px;border:1px solid var(--border);
+  background:var(--surface);color:var(--muted);font-size:12px;font-weight:700;
+  cursor:pointer;transition:all .18s ease;min-width:68px;
+}
+.theme-btn:hover{border-color:var(--brand);color:var(--text);}
+.theme-btn.active{border-color:var(--brand);background:rgba(109,139,255,0.15);color:var(--text);box-shadow:0 4px 14px rgba(109,139,255,0.3);}
+.theme-btn .theme-icon{font-size:22px;line-height:1;}
+
+</style>
 <style id="patternBadgeCSS">
 
+  /* header-rij: winnend patroon + spelnaam naast elkaar */
+  #callerHeader{
+    display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:nowrap;
+    margin:0 0 6px;
+  }
+  #callerHeader #callerGameTitle{
+    margin:0!important;text-align:left!important;flex:0 1 auto;min-width:0;
+    font-size:17px!important;line-height:1.2;
+  }
   #patternBadge{
-    display:flex;align-items:center;justify-content:center;gap:12px;
-    margin:0 auto 6px;padding:10px 16px;max-width:fit-content;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    margin:0;padding:6px 11px;flex:0 1 auto;min-width:0;
     background:rgba(109,139,255,0.12);border:1px solid rgba(109,139,255,0.30);
     border-radius:14px;
   }
-  #patternBadge .pb-text{display:flex;flex-direction:column;line-height:1.15;}
-  #patternBadge .pb-label{font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:700;}
-  #patternBadge .pb-name{font-size:15px;font-weight:800;color:var(--text);}
+  #patternBadge .pb-text{display:flex;flex-direction:column;line-height:1.12;min-width:0;}
+  #patternBadge .pb-label{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700;}
+  #patternBadge .pb-name{font-size:13px;font-weight:800;color:var(--text);}
   #patternBadge .pb-mini{flex:0 0 auto;}
   /* shrink whatever mini grid we clone in */
-  #patternBadge .pb-mini .pmini{width:46px!important;flex-basis:46px!important;}
-  #patternBadge .pb-mini .pmini.g9{width:70px!important;flex-basis:70px!important;}
+  #patternBadge .pb-mini .pmini{width:36px!important;flex-basis:36px!important;}
+  #patternBadge .pb-mini .pmini.g9{width:56px!important;flex-basis:56px!important;}
   
 </style>
 </head><body>
@@ -338,7 +467,7 @@ button.btn.gray{background:#475569;}
       </div>
     </div>
     <div class="card">
-      <div id="callerGameTitle" style="text-align:center;font-size:20px;font-weight:800;color:var(--amber);letter-spacing:.3px;margin-bottom:4px;"></div>
+      <div id="callerGameTitle" style="text-align:center;font-size:20px;font-weight:800;color:var(--brand);letter-spacing:.3px;margin-bottom:4px;"></div>
       <div class="current-letter" id="curLetter"></div>
       <div class="current-num" id="curNum">–</div>
       <div class="statbar">
@@ -346,11 +475,11 @@ button.btn.gray{background:#475569;}
         <div><b id="stLeft">75</b><span>Remaining</span></div>
       </div>
       <button class="btn green" id="drawBtn" onclick="drawNumber();speakNumber()">DRAW NEXT NUMBER</button>
-      <div class="row">
-        <button class="btn gray" onclick="undoDraw()">Undo</button>
-        <button class="btn red" onclick="resetGame()">Reset</button>
+      <div class="action-grid">
+        <button class="btn green act" id="mainAutoBtn" onclick="toggleAuto()">▶ Start Auto</button>
+        <button class="btn gray act" onclick="undoDraw()">Undo</button>
+        <button class="btn red act" onclick="resetGame()">Reset</button>
       </div>
-      <button class="btn green" id="mainAutoBtn" onclick="toggleAuto()" style="margin-top:8px;">▶ Start Auto</button>
       <div class="countdown" id="mainAutoCountdown"></div>
     </div>
     <div class="card" id="autoCallCard">
@@ -1038,14 +1167,75 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
   if(patternCard) drawer.appendChild(patternCard);
   drawer.appendChild(sect('auto','Automatic calling'));
   if(autoCard) drawer.appendChild(autoCard);
+  // ---------- theme picker ----------
+  var THEMES=[
+    {id:'default',     icon:'🎱', label:'Default',     emojis:[]},
+    {id:'bloemen',     icon:'🌸', label:'Bloemen',     emojis:['🌸','🌺','🌼','🌷','🌻','🌹']},
+    {id:'ajax',        icon:'⚽', label:'Ajax',        emojis:['⚽','🏆','⚽','🔴','⚽','🏅']},
+    {id:'vliegtuigen', icon:'✈️', label:'Vliegtuigen', emojis:['✈️','🛫','🛬','☁️','🛩️','🌤️']},
+    {id:'sterren',     icon:'⭐', label:'Sterren',     emojis:['⭐','🌟','✨','💫','🌙','🌠']},
+    {id:'katten',      icon:'🐱', label:'Katten',      emojis:['🐱','🐾','😺','🐈','😸','🐟']},
+    {id:'nijntje',     icon:'🐰', label:'Nijntje',     emojis:['🐰','🐇','🌷','🎀','🐣','🌼']},
+  ];
+
+  // create background decor layer
+  var bgDecor=document.getElementById('bgDecor');
+  if(!bgDecor){ bgDecor=document.createElement('div'); bgDecor.id='bgDecor'; document.body.insertBefore(bgDecor,document.body.firstChild); }
+
+  function buildDecor(emojis){
+    bgDecor.innerHTML='';
+    if(!emojis||!emojis.length) return;
+    var perCol=Math.max(5, Math.floor(window.innerHeight/120));
+    ['left','right'].forEach(function(side, ci){
+      var col=document.createElement('div'); col.className='decor-col';
+      for(var i=0;i<perCol;i++){
+        var s=document.createElement('span');
+        s.textContent=emojis[(i+ci)%emojis.length];
+        col.appendChild(s);
+      }
+      bgDecor.appendChild(col);
+    });
+  }
+  // herbouw kolommen bij venster-resize zodat ze de volle hoogte blijven vullen
+  window.addEventListener('resize', function(){
+    var cur=null; try{ cur=localStorage.getItem('bingoTheme'); }catch(e){}
+    var t=THEMES.find(function(x){return x.id===cur;});
+    if(t) buildDecor(t.emojis);
+  });
+
+  function applyTheme(id){
+    document.body.className=document.body.className.replace(/\btheme-\S+/g,'').trim();
+    var t=THEMES.find(function(x){return x.id===id;})||THEMES[0];
+    if(id&&id!=='default') document.body.classList.add('theme-'+id);
+    buildDecor(t.emojis);
+    document.querySelectorAll('.theme-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.theme===id); });
+    try{ localStorage.setItem('bingoTheme',id); }catch(e){}
+  }
+
+  var themeSect=document.createElement('div'); themeSect.className='drawer-section-title'; themeSect.textContent='Thema';
+  drawer.appendChild(themeSect);
+  var tp=document.createElement('div'); tp.id='themePicker'; drawer.appendChild(tp);
+  THEMES.forEach(function(t){
+    var b=document.createElement('button'); b.className='theme-btn'; b.dataset.theme=t.id;
+    b.innerHTML='<span class="theme-icon">'+t.icon+'</span><span>'+t.label+'</span>';
+    b.onclick=function(){ applyTheme(t.id); };
+    tp.appendChild(b);
+  });
+  // restore saved theme
+  try{ var _st=localStorage.getItem('bingoTheme'); if(_st) applyTheme(_st); else applyTheme('default'); }catch(e){ applyTheme('default'); }
+
   drawer.appendChild(sect('print','Print'));
   var cb=document.createElement('button'); cb.id='drawerCardsBtn'; cb.innerHTML='&#128424;&#65039; <span data-i18n-menu="cardsbtn">Cards / PDF</span>';
   drawer.appendChild(cb);
 
-  // ---------- pattern badge in main card ----------
+  // ---------- header: winnend patroon + spelnaam naast elkaar ----------
   var badge=document.createElement('div'); badge.id='patternBadge';
   badge.innerHTML='<div class="pb-mini"></div><div class="pb-text"><span class="pb-label" data-i18n-menu="patternlabel">Winning pattern</span><span class="pb-name" id="pbName"></span></div>';
-  mainCard.insertBefore(badge, mainCard.firstChild);
+  var header=document.createElement('div'); header.id='callerHeader';
+  mainCard.insertBefore(header, mainCard.firstChild);
+  header.appendChild(badge);
+  var _gt=document.getElementById('callerGameTitle');
+  if(_gt) header.appendChild(_gt); // spelnaam naast de badge plaatsen
   window.__syncPatternBadge=function(){
     var sel=document.getElementById('patternSel'); var preview=document.getElementById('patternPreview');
     var pbName=document.getElementById('pbName'); var pbMini=document.querySelector('#patternBadge .pb-mini');
@@ -1055,10 +1245,11 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
   var psel=document.getElementById('patternSel');
   if(psel) psel.addEventListener('change', function(){ setTimeout(window.__syncPatternBadge,30); });
 
-  // ---------- verify shortcut button ----------
-  var vb=document.createElement('button'); vb.id='verifyShortcut';
+  // ---------- verify shortcut button (in het actie-raster) ----------
+  var vb=document.createElement('button'); vb.id='verifyShortcut'; vb.className='act';
   vb.innerHTML='&#128269; <span data-i18n-menu="verifybtn">Verify a card</span>';
-  mainCard.appendChild(vb);
+  var grid=mainCard.querySelector('.action-grid');
+  if(grid) grid.appendChild(vb); else mainCard.appendChild(vb);
 
   // ---------- back buttons on print + verify ----------
   function addBack(panelId){
