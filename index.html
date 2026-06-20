@@ -235,13 +235,14 @@ button.btn.gray{background:#475569;}
 
   /* Top app bar */
   #appbar{
-    display:flex;align-items:baseline;gap:10px;margin:8px 0 14px;
+    display:flex;align-items:flex-start;gap:10px;margin:8px 0 14px;
   }
-  #appbar h1{margin:0!important;flex:0 0 auto;text-align:left!important;font-size:24px!important;}
+  /* titel-groep: app-naam + " - " + speltitel als één doorlopende tekst die terugloopt */
+  #titleGroup{flex:1 1 auto;min-width:0;}
+  #appbar h1{margin:0!important;display:inline;text-align:left!important;font-size:21px!important;}
   #appbar #callerGameTitle{
-    flex:0 1 auto;min-width:0;margin:0 0 0 auto!important;text-align:right!important;
-    font-size:16px!important;font-weight:800;line-height:1.2;
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;align-self:center;
+    display:inline;margin:0!important;text-align:left!important;
+    font-size:21px!important;font-weight:800;line-height:1.25;color:var(--brand,#6d8bff);
   }
   #menuBtn{
     flex:0 0 auto;width:46px;height:46px;border-radius:14px;cursor:pointer;
@@ -260,14 +261,15 @@ button.btn.gray{background:#475569;}
     display:flex!important;align-items:center;justify-content:center;gap:8px;
   }
 
-  /* compact actie-raster: 4 knoppen in 2 rijen (2×2) */
-  .action-grid{
-    display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px;
+  /* actieknoppen in rijen: rij 1 = 3 knoppen, rij 2 = 2 knoppen */
+  .action-row{display:grid;gap:8px;margin-top:10px;}
+  .action-row.r3{grid-template-columns:repeat(3,1fr);}
+  .action-row.r2{grid-template-columns:repeat(2,1fr);}
+  .action-row .btn.act{
+    margin-top:0!important;padding:11px 6px!important;font-size:13px!important;
+    border-radius:12px!important;min-height:48px;line-height:1.15;
   }
-  .action-grid .btn.act{
-    margin-top:0!important;padding:11px 8px!important;font-size:14px!important;
-    border-radius:12px!important;min-height:46px;line-height:1.15;
-  }
+  .action-row #drawBtn{font-size:13px!important;} /* id-override gelijktrekken */
 
   /* Make the main draw card extra prominent */
   #mainDrawCard{
@@ -315,6 +317,19 @@ button.btn.gray{background:#475569;}
     display:flex;align-items:center;justify-content:center;gap:8px;transition:all .18s ease;
   }
   #drawerCardsBtn:hover{border-color:var(--brand);background:var(--surface-2);}
+  /* handleiding */
+  #guideBox{border:1px solid var(--border);border-radius:14px;background:var(--surface);overflow:hidden;}
+  #guideBox summary{
+    list-style:none;cursor:pointer;padding:14px;font-weight:800;font-size:15px;color:var(--text);
+    display:flex;align-items:center;gap:8px;
+  }
+  #guideBox summary::-webkit-details-marker{display:none;}
+  #guideBox summary::after{content:'▸';margin-left:auto;color:var(--muted);transition:transform .2s;}
+  #guideBox[open] summary::after{transform:rotate(90deg);}
+  #guideBox .guide-content{padding:0 14px 12px;}
+  #guideBox .guide-content h4{margin:12px 0 4px;font-size:13px;color:var(--brand);font-weight:800;}
+  #guideBox .guide-content ul{margin:0;padding-left:18px;}
+  #guideBox .guide-content li{font-size:13px;color:var(--muted);line-height:1.45;margin-bottom:4px;}
   
 </style>
 <style id="themes">
@@ -326,17 +341,6 @@ button.btn.gray{background:#475569;}
    var(--brand2), var(--green) → kleuren volgen vanzelf.
    ────────────────────────────────────────────── */
 
-/* hoofdknoppen volgen de thema-accentkleur */
-body[class*="theme-"] #drawBtn,
-body[class*="theme-"] #mainDrawBtn,
-body[class*="theme-"] #autoBtn,
-body[class*="theme-"] #mainAutoBtn,
-body[class*="theme-"] #pdfBtn,
-body[class*="theme-"] button.btn.green{
-  background:linear-gradient(135deg,var(--brand),var(--brand2))!important;
-  box-shadow:0 8px 24px var(--glow)!important;
-  color:var(--btnText,#fff)!important;
-}
 /* TITEL: effen kleur — geen gradient-clip die als blok kan tonen */
 h1{
   background:none!important;
@@ -364,61 +368,6 @@ h1{
              inset 0 12px 24px rgba(255,255,255,.18)!important;
   text-shadow:0 2px 10px rgba(0,0,0,.32)!important;
 }
-/* lichte thema's (goud/geel): donker nummer voor contrast op de bal */
-body.theme-sterren #mainDrawCard #curNum,body.theme-nijntje #mainDrawCard #curNum,
-body.theme-sterren #curNum,body.theme-nijntje #curNum{
-  -webkit-text-fill-color:#1a1000!important;color:#1a1000!important;
-  text-shadow:0 1px 3px rgba(255,255,255,.45)!important;
-}
-
-/* per-thema variabelen + sfeerachtergrond (verfijnde paletten) */
-/* Bloemen — roze → lavendel op warm pruim */
-body.theme-bloemen{--brand:#ff6fb5;--brand2:#b06ef0;--green:#ff6fb5;--green2:#b06ef0;--amber:#ff6fb5;--glow:rgba(255,111,181,.42);
-  background:radial-gradient(900px 520px at 12% -5%,rgba(255,111,181,.20),transparent 55%),radial-gradient(760px 420px at 95% 8%,rgba(176,110,240,.18),transparent 52%),linear-gradient(165deg,#1d0c20,#0e0712 82%)!important;}
-/* Ajax — clubrood → koraal op bijna-zwart warm */
-body.theme-ajax{--brand:#ec1c24;--brand2:#ff6a5e;--green:#ec1c24;--green2:#ff6a5e;--amber:#ec1c24;--glow:rgba(236,28,36,.45);
-  background:radial-gradient(900px 520px at 12% -5%,rgba(236,28,36,.22),transparent 55%),radial-gradient(700px 400px at 96% 6%,rgba(255,106,94,.14),transparent 50%),linear-gradient(165deg,#160203,#1f0506 82%)!important;}
-/* Vliegtuigen — azuur → cyaan op nachtblauw */
-body.theme-vliegtuigen{--brand:#2f86ff;--brand2:#19c8ff;--green:#2f86ff;--green2:#19c8ff;--amber:#2f86ff;--glow:rgba(47,134,255,.42);
-  background:radial-gradient(900px 520px at 12% -5%,rgba(47,134,255,.20),transparent 55%),radial-gradient(760px 420px at 95% 8%,rgba(25,200,255,.16),transparent 52%),linear-gradient(165deg,#03101f,#06182e 82%)!important;}
-/* Sterren — goud → violet op diep indigo */
-body.theme-sterren{--brand:#ffd23c;--brand2:#9b7bff;--green:#ffd23c;--green2:#9b7bff;--amber:#ffd23c;--glow:rgba(255,210,60,.42);--btnText:#1a1000;
-  background:radial-gradient(900px 520px at 12% -5%,rgba(255,210,60,.16),transparent 52%),radial-gradient(780px 440px at 95% 8%,rgba(123,93,255,.20),transparent 55%),linear-gradient(165deg,#070318,#04010d 82%)!important;}
-/* Katten — amber → koraalroze op warm bruin */
-body.theme-katten{--brand:#ff9a3d;--brand2:#ff6f91;--green:#ff9a3d;--green2:#ff6f91;--amber:#ff9a3d;--glow:rgba(255,154,61,.42);
-  background:radial-gradient(900px 520px at 12% -5%,rgba(255,154,61,.18),transparent 55%),radial-gradient(760px 420px at 95% 8%,rgba(255,111,145,.16),transparent 52%),linear-gradient(165deg,#170c07,#1e1008 82%)!important;}
-/* Nijntje — zonnig geel → warm oranje op zacht donkerbruin */
-body.theme-nijntje{--brand:#ffc62e;--brand2:#ff8f3c;--green:#ffc62e;--green2:#ff8f3c;--amber:#ffc62e;--glow:rgba(255,198,46,.42);--btnText:#1a0d00;
-  background:radial-gradient(900px 520px at 12% -5%,rgba(255,198,46,.20),transparent 55%),radial-gradient(760px 420px at 95% 8%,rgba(255,143,60,.16),transparent 52%),linear-gradient(165deg,#1c1304,#241704 82%)!important;}
-
-/* ── achtergrond decoratie: 2 verticale kolommen vlak naast de app,
-      over de volle hoogte, ACHTER de content (z-index:-1) ── */
-#bgDecor{
-  position:fixed;inset:0;pointer-events:none;z-index:-1;
-  display:flex;justify-content:center;overflow:hidden;
-}
-/* baan iets breder dan de app (820px) zodat de kolommen er net buiten vallen */
-#bgDecor .decor-track{position:relative;width:100%;max-width:948px;height:100%;}
-#bgDecor .decor-col{
-  position:absolute;top:0;height:100%;width:60px;
-  display:flex;flex-direction:column;justify-content:space-around;align-items:center;
-  padding:18px 0;
-}
-#bgDecor .decor-col.left{left:0;}
-#bgDecor .decor-col.right{right:0;}
-#bgDecor span{font-size:40px;line-height:1;opacity:.6;}
-
-/* theme picker strip */
-#themePicker{display:flex;flex-wrap:wrap;gap:8px;margin:0;}
-.theme-btn{
-  display:flex;flex-direction:column;align-items:center;gap:4px;
-  padding:8px 10px;border-radius:12px;border:1px solid var(--border);
-  background:var(--surface);color:var(--muted);font-size:12px;font-weight:700;
-  cursor:pointer;transition:all .18s ease;min-width:68px;
-}
-.theme-btn:hover{border-color:var(--brand);color:var(--text);}
-.theme-btn.active{border-color:var(--brand);background:rgba(109,139,255,0.15);color:var(--text);box-shadow:0 4px 14px rgba(109,139,255,0.3);}
-.theme-btn .theme-icon{font-size:22px;line-height:1;}
 
 </style>
 <style id="patternBadgeCSS">
@@ -476,11 +425,14 @@ body.theme-nijntje{--brand:#ffc62e;--brand2:#ff8f3c;--green:#ffc62e;--green2:#ff
         <div><b id="stCalled">0</b><span>Called</span></div>
         <div><b id="stLeft">75</b><span>Remaining</span></div>
       </div>
-      <button class="btn green" id="drawBtn" onclick="drawNumber();speakNumber()">DRAW NEXT NUMBER</button>
-      <div class="action-grid">
-        <button class="btn green act" id="mainAutoBtn" onclick="toggleAuto()">▶ Start Auto</button>
-        <button class="btn red act" onclick="resetGame()">Reset</button>
+      <div class="action-row r3">
+        <button class="btn green act" id="drawBtn" onclick="drawNumber();speakNumber()">Next Number</button>
         <button class="btn red act" onclick="undoDraw()">Undo</button>
+        <!-- "Controleer Bingo" (verify) wordt hier door JS ingevoegd -->
+      </div>
+      <div class="action-row r2">
+        <button class="btn green act" id="mainAutoBtn" onclick="toggleAuto()">▶ Start Auto</button>
+        <button class="btn red act" onclick="resetGame()">New Game</button>
       </div>
       <div class="countdown" id="mainAutoCountdown"></div>
     </div>
@@ -533,6 +485,13 @@ body.theme-nijntje{--brand:#ffc62e;--brand2:#ff8f3c;--green:#ffc62e;--green2:#ff
   </div>
 
   <div id="panel-verify" class="panel">
+    <div class="card">
+      <label>Call a bingo manually</label>
+      <div class="row">
+        <button class="btn green" onclick="window.showCeleb('win')">🎉 Good Bingo!</button>
+        <button class="btn red" onclick="window.showCeleb('lose')">❌ False Bingo!</button>
+      </div>
+    </div>
     <div class="card">
       <div class="smallnote" id="verifyPatternNote" style="margin-top:0;"></div>
       <label>Verify a card against called numbers</label>
@@ -887,10 +846,28 @@ function doAutoDraw(){
   window.drawNumber(); speakNumber();
   if(parseInt(document.getElementById('stLeft').textContent,10)<=0){ window.stopAuto(); _allCalled(); }
 }
+// ---------- Screen Wake Lock: scherm wakker houden tijdens omroepen ----------
+window.__wakeLock=null;
+async function requestWakeLock(){
+  try{
+    if('wakeLock' in navigator && navigator.wakeLock && navigator.wakeLock.request){
+      window.__wakeLock=await navigator.wakeLock.request('screen');
+    }
+  }catch(e){ window.__wakeLock=null; }
+}
+function releaseWakeLock(){
+  try{ if(window.__wakeLock){ window.__wakeLock.release(); window.__wakeLock=null; } }catch(e){ window.__wakeLock=null; }
+}
+// na terugkeer naar de tab opnieuw aanvragen (wake lock vervalt bij verbergen)
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='visible' && window.__autoState && window.__autoState.running && !window.__wakeLock){ requestWakeLock(); }
+});
+
 window.startAuto=function(){
   if(window.__autoState.running) return;
   var secs=parseInt(document.getElementById('autoInterval').value,10);
   window.__autoState.running=true; setBtn(true);
+  requestWakeLock();
   doAutoDraw();
   if(!window.__autoState.running) return;
   window.__autoState.secsLeft=secs;
@@ -904,7 +881,7 @@ window.startAuto=function(){
   window.__autoState.tick=setInterval(function(){ window.__autoState.secsLeft--; if(window.__autoState.secsLeft<=0) window.__autoState.secsLeft=secs; uc(); },1000);
   window.__autoState.timer=setInterval(function(){ doAutoDraw(); window.__autoState.secsLeft=secs; },secs*1000);
 };
-window.stopAuto=function(){ clearTimers(); window.__autoState.running=false; setBtn(false); ['autoCountdown','mainAutoCountdown'].forEach(function(id){ var el=document.getElementById(id); if(el) el.textContent=''; }); try{ window.speechSynthesis&&window.speechSynthesis.cancel(); }catch(e){} };
+window.stopAuto=function(){ clearTimers(); window.__autoState.running=false; setBtn(false); releaseWakeLock(); ['autoCountdown','mainAutoCountdown'].forEach(function(id){ var el=document.getElementById(id); if(el) el.textContent=''; }); try{ window.speechSynthesis&&window.speechSynthesis.cancel(); }catch(e){} };
 window.toggleAuto=function(){ window.__autoState.running?window.stopAuto():window.startAuto(); };
 document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('autoInterval').addEventListener('change',function(){ if(window.__autoState.running){ window.stopAuto(); window.startAuto(); } });
@@ -915,16 +892,19 @@ document.addEventListener('DOMContentLoaded',function(){
 </script>
 <script>
 window.ENH_I18N = {"en":{"name":"English","flag":"🇬🇧","code":"en-GB"},"nl":{"name":"Nederlands","flag":"🇧🇪","code":"nl-BE"},"de":{"name":"Deutsch","flag":"🇩🇪","code":"de-DE"},"fr":{"name":"Français","flag":"🇫🇷","code":"fr-FR"},"es":{"name":"Español","flag":"🇪🇸","code":"es-ES"},"pt":{"name":"Português","flag":"🇧🇷","code":"pt-BR"},"it":{"name":"Italiano","flag":"🇮🇹","code":"it-IT"},"ru":{"name":"Русский","flag":"🇷🇺","code":"ru-RU"},"pl":{"name":"Polski","flag":"🇵🇱","code":"pl-PL"},"tr":{"name":"Türkçe","flag":"🇹🇷","code":"tr-TR"},"ja":{"name":"日本語","flag":"🇯🇵","code":"ja-JP"},"zh":{"name":"中文","flag":"🇨🇳","code":"zh-CN"},"ar":{"name":"العربية","flag":"🇸🇦","code":"ar-SA"},"ko":{"name":"한국어","flag":"🇰🇷","code":"ko-KR"},"hi":{"name":"हिन्दी","flag":"🇮🇳","code":"hi-IN"}};
-window.ENH_T = {"🎱 Bingo Caller":{"nl":"🎱 Bingo Omroeper","de":"🎱 Bingo-Ansager","fr":"🎱 Annonceur Bingo","es":"🎱 Locutor de Bingo"},"Caller":{"nl":"Omroeper","de":"Ansager","fr":"Annonceur","es":"Locutor"},"Cards / PDF":{"nl":"Kaarten / PDF","de":"Karten / PDF","fr":"Cartes / PDF","es":"Cartones / PDF"},"Verify":{"nl":"Controleren","de":"Prüfen","fr":"Vérifier","es":"Verificar"},"Game mode":{"nl":"Spelmodus","de":"Spielmodus","fr":"Mode de jeu","es":"Modo de juego"},"US Bingo (1–75, B-I-N-G-O)":{"nl":"US Bingo (1–75, B-I-N-G-O)","de":"US-Bingo (1–75, B-I-N-G-O)","fr":"Bingo US (1–75, B-I-N-G-O)","es":"Bingo EE.UU. (1–75, B-I-N-G-O)"},"EU/UK Bingo (1–90)":{"nl":"EU/UK Bingo (1–90)","de":"EU/UK-Bingo (1–90)","fr":"Bingo EU/UK (1–90)","es":"Bingo EU/UK (1–90)"},"Winning pattern":{"nl":"Winnend patroon","de":"Gewinnmuster","fr":"Motif gagnant","es":"Patrón ganador"},"Any Line (row/col/diag)":{"nl":"Elke lijn (rij/kolom/diag)","de":"Beliebige Linie (Reihe/Spalte/Diag)","fr":"Toute ligne (rangée/col/diag)","es":"Cualquier línea (fila/col/diag)"},"Four Corners":{"nl":"Vier hoeken","de":"Vier Ecken","fr":"Quatre coins","es":"Cuatro esquinas"},"X (both diagonals)":{"nl":"X (beide diagonalen)","de":"X (beide Diagonalen)","fr":"X (deux diagonales)","es":"X (ambas diagonales)"},"Plus / Cross (+)":{"nl":"Plus / Kruis (+)","de":"Plus / Kreuz (+)","fr":"Plus / Croix (+)","es":"Más / Cruz (+)"},"Letter T":{"nl":"Letter T","de":"Buchstabe T","fr":"Lettre T","es":"Letra T"},"Letter L":{"nl":"Letter L","de":"Buchstabe L","fr":"Lettre L","es":"Letra L"},"Outer Frame":{"nl":"Buitenrand","de":"Äußerer Rahmen","fr":"Cadre extérieur","es":"Marco exterior"},"Postage Stamp (top-right 2x2)":{"nl":"Postzegel (rechtsboven 2x2)","de":"Briefmarke (oben rechts 2x2)","fr":"Timbre (haut-droite 2x2)","es":"Sello (sup-der 2x2)"},"Blackout / Full House":{"nl":"Volle kaart / Full House","de":"Vollkarte / Full House","fr":"Carton plein / Full House","es":"Cartón lleno / Full House"},"One Line (any row)":{"nl":"Eén lijn (elke rij)","de":"Eine Linie (beliebige Reihe)","fr":"Une ligne (toute rangée)","es":"Una línea (cualquier fila)"},"Two Lines":{"nl":"Twee lijnen","de":"Zwei Linien","fr":"Deux lignes","es":"Dos líneas"},"Full House (all 15)":{"nl":"Full House (alle 15)","de":"Full House (alle 15)","fr":"Full House (les 15)","es":"Full House (los 15)"},"Called":{"nl":"Getrokken","de":"Gezogen","fr":"Tirés","es":"Cantados"},"Remaining":{"nl":"Resterend","de":"Verbleibend","fr":"Restants","es":"Restantes"},"DRAW NEXT NUMBER":{"nl":"VOLGEND NUMMER TREKKEN","de":"NÄCHSTE ZAHL ZIEHEN","fr":"TIRER LE PROCHAIN NUMÉRO","es":"SACAR SIGUIENTE NÚMERO"},"Undo":{"nl":"Ongedaan maken","de":"Rückgängig","fr":"Annuler","es":"Deshacer"},"Reset":{"nl":"Resetten","de":"Zurücksetzen","fr":"Réinitialiser","es":"Reiniciar"},"Automatic calling":{"nl":"Automatisch omroepen","de":"Automatisch ansagen","fr":"Annonce automatique","es":"Canto automático"},"Every 3 seconds":{"nl":"Elke 3 seconden","de":"Alle 3 Sekunden","fr":"Toutes les 3 secondes","es":"Cada 3 segundos"},"Every 5 seconds":{"nl":"Elke 5 seconden","de":"Alle 5 Sekunden","fr":"Toutes les 5 secondes","es":"Cada 5 segundos"},"Every 8 seconds":{"nl":"Elke 8 seconden","de":"Alle 8 Sekunden","fr":"Toutes les 8 secondes","es":"Cada 8 segundos"},"Every 10 seconds":{"nl":"Elke 10 seconden","de":"Alle 10 Sekunden","fr":"Toutes les 10 secondes","es":"Cada 10 segundos"},"Every 15 seconds":{"nl":"Elke 15 seconden","de":"Alle 15 Sekunden","fr":"Toutes les 15 secondes","es":"Cada 15 segundos"},"Every 20 seconds":{"nl":"Elke 20 seconden","de":"Alle 20 Sekunden","fr":"Toutes les 20 secondes","es":"Cada 20 segundos"},"Every 30 seconds":{"nl":"Elke 30 seconden","de":"Alle 30 Sekunden","fr":"Toutes les 30 secondes","es":"Cada 30 segundos"},"▶ Start Auto":{"nl":"▶ Auto starten","de":"▶ Auto starten","fr":"▶ Démarrer auto","es":"▶ Iniciar auto"},"⏸ Stop Auto":{"nl":"⏸ Auto stoppen","de":"⏸ Auto stoppen","fr":"⏸ Arrêter auto","es":"⏸ Detener auto"},"🔊 Speak each number aloud":{"nl":"🔊 Elk nummer hardop uitspreken","de":"🔊 Jede Zahl laut vorlesen","fr":"🔊 Annoncer chaque numéro à voix haute","es":"🔊 Leer cada número en voz alta"},"Called numbers history (newest first)":{"nl":"Geschiedenis getrokken nummers (nieuwste eerst)","de":"Verlauf gezogener Zahlen (neueste zuerst)","fr":"Historique des numéros tirés (récent d'abord)","es":"Historial de números cantados (más reciente primero)"},"No numbers called yet.":{"nl":"Nog geen nummers getrokken.","de":"Noch keine Zahlen gezogen.","fr":"Aucun numéro tiré pour l'instant.","es":"Aún no se ha cantado ningún número."},"Full board":{"nl":"Volledig bord","de":"Gesamtes Brett","fr":"Tableau complet","es":"Tablero completo"},"ALL CALLED":{"nl":"ALLES GETROKKEN","de":"ALLE GEZOGEN","fr":"TOUS TIRÉS","es":"TODOS CANTADOS"},"PDF / Game Title":{"nl":"PDF / Speltitel","de":"PDF / Spieltitel","fr":"Titre PDF / jeu","es":"Título PDF / juego"},"Game mode for cards":{"nl":"Spelmodus voor kaarten","de":"Spielmodus für Karten","fr":"Mode de jeu pour cartes","es":"Modo de juego para cartones"},"US Bingo (1–75, 5×5, FREE center)":{"nl":"US Bingo (1–75, 5×5, GRATIS midden)","de":"US-Bingo (1–75, 5×5, FREI Mitte)","fr":"Bingo US (1–75, 5×5, centre LIBRE)","es":"Bingo EE.UU. (1–75, 5×5, centro LIBRE)"},"EU/UK Bingo (1–90, 3×9)":{"nl":"EU/UK Bingo (1–90, 3×9)","de":"EU/UK-Bingo (1–90, 3×9)","fr":"Bingo EU/UK (1–90, 3×9)","es":"Bingo EU/UK (1–90, 3×9)"},"Number of cards (6 per page)":{"nl":"Aantal kaarten (6 per pagina)","de":"Anzahl Karten (6 pro Seite)","fr":"Nombre de cartes (6 par page)","es":"Número de cartones (6 por página)"},"Starting card number":{"nl":"Startnummer kaart","de":"Startkartennummer","fr":"Numéro de carte de départ","es":"Número de cartón inicial"},"GENERATE PRINTABLE PDF":{"nl":"AFDRUKBARE PDF GENEREREN","de":"DRUCKBARES PDF ERSTELLEN","fr":"GÉNÉRER UN PDF IMPRIMABLE","es":"GENERAR PDF IMPRIMIBLE"},"Verify a card against called numbers":{"nl":"Controleer een kaart tegen getrokken nummers","de":"Karte gegen gezogene Zahlen prüfen","fr":"Vérifier une carte selon les numéros tirés","es":"Verificar un cartón con los números cantados"},"📷 Scan QR with Camera":{"nl":"📷 QR scannen met camera","de":"📷 QR mit Kamera scannen","fr":"📷 Scanner le QR avec la caméra","es":"📷 Escanear QR con la cámara"},"…or paste the card code manually":{"nl":"…of plak de kaartcode handmatig","de":"…oder Kartencode manuell einfügen","fr":"…ou collez le code de carte manuellement","es":"…o pega el código del cartón manualmente"},"Verify pasted code":{"nl":"Geplakte code controleren","de":"Eingefügten Code prüfen","fr":"Vérifier le code collé","es":"Verificar código pegado"},"card code here":{"nl":"kaartcode hier","de":"Kartencode hier","fr":"code de carte ici","es":"código del cartón aquí"},"Each card is black & white for easy printing and carries a unique QR code for instant verification.":{"nl":"Elke kaart is zwart-wit voor eenvoudig afdrukken en heeft een unieke QR-code voor directe controle.","de":"Jede Karte ist schwarz-weiß für einfaches Drucken und trägt einen eindeutigen QR-Code zur sofortigen Prüfung.","fr":"Chaque carte est en noir et blanc pour une impression facile et porte un QR code unique pour une vérification instantanée.","es":"Cada cartón es en blanco y negro para imprimir fácilmente y lleva un código QR único para verificación instantánea."},"Each card is black & white for easy printing and carries a unique QR code. Scan a card's QR code in the Verify tab to check it against the called numbers.":{"nl":"Elke kaart is zwart-wit voor eenvoudig afdrukken en heeft een unieke QR-code. Scan de QR-code van een kaart op het tabblad Controleren om deze te vergelijken met de getrokken nummers.","de":"Jede Karte ist schwarz-weiß für einfaches Drucken und trägt einen eindeutigen QR-Code. Scannen Sie den QR-Code einer Karte im Prüfen-Tab, um sie mit den gezogenen Zahlen abzugleichen.","fr":"Chaque carte est en noir et blanc pour une impression facile et porte un QR code unique. Scannez le QR code d'une carte dans l'onglet Vérifier pour la comparer aux numéros tirés.","es":"Cada cartón es en blanco y negro para imprimir fácilmente y lleva un código QR único. Escanea el código QR de un cartón en la pestaña Verificar para compararlo con los números cantados."}
+window.ENH_T = {"🎱 Bingo Caller":{"nl":"🎱 Bingo Omroeper","de":"🎱 Bingo-Ansager","fr":"🎱 Annonceur Bingo","es":"🎱 Locutor de Bingo"},"Caller":{"nl":"Omroeper","de":"Ansager","fr":"Annonceur","es":"Locutor"},"Cards / PDF":{"nl":"Kaarten / PDF","de":"Karten / PDF","fr":"Cartes / PDF","es":"Cartones / PDF"},"Verify":{"nl":"Controleren","de":"Prüfen","fr":"Vérifier","es":"Verificar"},"Game mode":{"nl":"Spelmodus","de":"Spielmodus","fr":"Mode de jeu","es":"Modo de juego"},"US Bingo (1–75, B-I-N-G-O)":{"nl":"US Bingo (1–75, B-I-N-G-O)","de":"US-Bingo (1–75, B-I-N-G-O)","fr":"Bingo US (1–75, B-I-N-G-O)","es":"Bingo EE.UU. (1–75, B-I-N-G-O)"},"EU/UK Bingo (1–90)":{"nl":"EU/UK Bingo (1–90)","de":"EU/UK-Bingo (1–90)","fr":"Bingo EU/UK (1–90)","es":"Bingo EU/UK (1–90)"},"Winning pattern":{"nl":"Winnend patroon","de":"Gewinnmuster","fr":"Motif gagnant","es":"Patrón ganador"},"Any Line (row/col/diag)":{"nl":"Elke lijn (rij/kolom/diag)","de":"Beliebige Linie (Reihe/Spalte/Diag)","fr":"Toute ligne (rangée/col/diag)","es":"Cualquier línea (fila/col/diag)"},"Four Corners":{"nl":"Vier hoeken","de":"Vier Ecken","fr":"Quatre coins","es":"Cuatro esquinas"},"X (both diagonals)":{"nl":"X (beide diagonalen)","de":"X (beide Diagonalen)","fr":"X (deux diagonales)","es":"X (ambas diagonales)"},"Plus / Cross (+)":{"nl":"Plus / Kruis (+)","de":"Plus / Kreuz (+)","fr":"Plus / Croix (+)","es":"Más / Cruz (+)"},"Letter T":{"nl":"Letter T","de":"Buchstabe T","fr":"Lettre T","es":"Letra T"},"Letter L":{"nl":"Letter L","de":"Buchstabe L","fr":"Lettre L","es":"Letra L"},"Outer Frame":{"nl":"Buitenrand","de":"Äußerer Rahmen","fr":"Cadre extérieur","es":"Marco exterior"},"Postage Stamp (top-right 2x2)":{"nl":"Postzegel (rechtsboven 2x2)","de":"Briefmarke (oben rechts 2x2)","fr":"Timbre (haut-droite 2x2)","es":"Sello (sup-der 2x2)"},"Blackout / Full House":{"nl":"Volle kaart / Full House","de":"Vollkarte / Full House","fr":"Carton plein / Full House","es":"Cartón lleno / Full House"},"One Line (any row)":{"nl":"Eén lijn (elke rij)","de":"Eine Linie (beliebige Reihe)","fr":"Une ligne (toute rangée)","es":"Una línea (cualquier fila)"},"Two Lines":{"nl":"Twee lijnen","de":"Zwei Linien","fr":"Deux lignes","es":"Dos líneas"},"Full House (all 15)":{"nl":"Full House (alle 15)","de":"Full House (alle 15)","fr":"Full House (les 15)","es":"Full House (los 15)"},"Called":{"nl":"Getrokken","de":"Gezogen","fr":"Tirés","es":"Cantados"},"Remaining":{"nl":"Resterend","de":"Verbleibend","fr":"Restants","es":"Restantes"},"Next Number":{"nl":"Volgend Nummer","de":"Nächste Zahl","fr":"Numéro suivant","es":"Siguiente número"},"Undo":{"nl":"Ongedaan maken","de":"Rückgängig","fr":"Annuler","es":"Deshacer"},"New Game":{"nl":"Nieuw Spel","de":"Neues Spiel","fr":"Nouvelle partie","es":"Nuevo juego"},"Automatic calling":{"nl":"Automatisch omroepen","de":"Automatisch ansagen","fr":"Annonce automatique","es":"Canto automático"},"Every 3 seconds":{"nl":"Elke 3 seconden","de":"Alle 3 Sekunden","fr":"Toutes les 3 secondes","es":"Cada 3 segundos"},"Every 5 seconds":{"nl":"Elke 5 seconden","de":"Alle 5 Sekunden","fr":"Toutes les 5 secondes","es":"Cada 5 segundos"},"Every 8 seconds":{"nl":"Elke 8 seconden","de":"Alle 8 Sekunden","fr":"Toutes les 8 secondes","es":"Cada 8 segundos"},"Every 10 seconds":{"nl":"Elke 10 seconden","de":"Alle 10 Sekunden","fr":"Toutes les 10 secondes","es":"Cada 10 segundos"},"Every 15 seconds":{"nl":"Elke 15 seconden","de":"Alle 15 Sekunden","fr":"Toutes les 15 secondes","es":"Cada 15 segundos"},"Every 20 seconds":{"nl":"Elke 20 seconden","de":"Alle 20 Sekunden","fr":"Toutes les 20 secondes","es":"Cada 20 segundos"},"Every 30 seconds":{"nl":"Elke 30 seconden","de":"Alle 30 Sekunden","fr":"Toutes les 30 secondes","es":"Cada 30 segundos"},"▶ Start Auto":{"nl":"▶ Auto starten","de":"▶ Auto starten","fr":"▶ Démarrer auto","es":"▶ Iniciar auto"},"⏸ Stop Auto":{"nl":"⏸ Auto stoppen","de":"⏸ Auto stoppen","fr":"⏸ Arrêter auto","es":"⏸ Detener auto"},"🔊 Speak each number aloud":{"nl":"🔊 Elk nummer hardop uitspreken","de":"🔊 Jede Zahl laut vorlesen","fr":"🔊 Annoncer chaque numéro à voix haute","es":"🔊 Leer cada número en voz alta"},"Called numbers history (newest first)":{"nl":"Geschiedenis getrokken nummers (nieuwste eerst)","de":"Verlauf gezogener Zahlen (neueste zuerst)","fr":"Historique des numéros tirés (récent d'abord)","es":"Historial de números cantados (más reciente primero)"},"No numbers called yet.":{"nl":"Nog geen nummers getrokken.","de":"Noch keine Zahlen gezogen.","fr":"Aucun numéro tiré pour l'instant.","es":"Aún no se ha cantado ningún número."},"Full board":{"nl":"Volledig bord","de":"Gesamtes Brett","fr":"Tableau complet","es":"Tablero completo"},"ALL CALLED":{"nl":"ALLES GETROKKEN","de":"ALLE GEZOGEN","fr":"TOUS TIRÉS","es":"TODOS CANTADOS"},"PDF / Game Title":{"nl":"PDF / Speltitel","de":"PDF / Spieltitel","fr":"Titre PDF / jeu","es":"Título PDF / juego"},"Game mode for cards":{"nl":"Spelmodus voor kaarten","de":"Spielmodus für Karten","fr":"Mode de jeu pour cartes","es":"Modo de juego para cartones"},"US Bingo (1–75, 5×5, FREE center)":{"nl":"US Bingo (1–75, 5×5, GRATIS midden)","de":"US-Bingo (1–75, 5×5, FREI Mitte)","fr":"Bingo US (1–75, 5×5, centre LIBRE)","es":"Bingo EE.UU. (1–75, 5×5, centro LIBRE)"},"EU/UK Bingo (1–90, 3×9)":{"nl":"EU/UK Bingo (1–90, 3×9)","de":"EU/UK-Bingo (1–90, 3×9)","fr":"Bingo EU/UK (1–90, 3×9)","es":"Bingo EU/UK (1–90, 3×9)"},"Number of cards (6 per page)":{"nl":"Aantal kaarten (6 per pagina)","de":"Anzahl Karten (6 pro Seite)","fr":"Nombre de cartes (6 par page)","es":"Número de cartones (6 por página)"},"Starting card number":{"nl":"Startnummer kaart","de":"Startkartennummer","fr":"Numéro de carte de départ","es":"Número de cartón inicial"},"GENERATE PRINTABLE PDF":{"nl":"AFDRUKBARE PDF GENEREREN","de":"DRUCKBARES PDF ERSTELLEN","fr":"GÉNÉRER UN PDF IMPRIMABLE","es":"GENERAR PDF IMPRIMIBLE"},"Verify a card against called numbers":{"nl":"Controleer een kaart tegen getrokken nummers","de":"Karte gegen gezogene Zahlen prüfen","fr":"Vérifier une carte selon les numéros tirés","es":"Verificar un cartón con los números cantados"},"📷 Scan QR with Camera":{"nl":"📷 QR scannen met camera","de":"📷 QR mit Kamera scannen","fr":"📷 Scanner le QR avec la caméra","es":"📷 Escanear QR con la cámara"},"…or paste the card code manually":{"nl":"…of plak de kaartcode handmatig","de":"…oder Kartencode manuell einfügen","fr":"…ou collez le code de carte manuellement","es":"…o pega el código del cartón manualmente"},"Verify pasted code":{"nl":"Geplakte code controleren","de":"Eingefügten Code prüfen","fr":"Vérifier le code collé","es":"Verificar código pegado"},"card code here":{"nl":"kaartcode hier","de":"Kartencode hier","fr":"code de carte ici","es":"código del cartón aquí"},"Each card is black & white for easy printing and carries a unique QR code for instant verification.":{"nl":"Elke kaart is zwart-wit voor eenvoudig afdrukken en heeft een unieke QR-code voor directe controle.","de":"Jede Karte ist schwarz-weiß für einfaches Drucken und trägt einen eindeutigen QR-Code zur sofortigen Prüfung.","fr":"Chaque carte est en noir et blanc pour une impression facile et porte un QR code unique pour une vérification instantanée.","es":"Cada cartón es en blanco y negro para imprimir fácilmente y lleva un código QR único para verificación instantánea."},"Each card is black & white for easy printing and carries a unique QR code. Scan a card's QR code in the Verify tab to check it against the called numbers.":{"nl":"Elke kaart is zwart-wit voor eenvoudig afdrukken en heeft een unieke QR-code. Scan de QR-code van een kaart op het tabblad Controleren om deze te vergelijken met de getrokken nummers.","de":"Jede Karte ist schwarz-weiß für einfaches Drucken und trägt einen eindeutigen QR-Code. Scannen Sie den QR-Code einer Karte im Prüfen-Tab, um sie mit den gezogenen Zahlen abzugleichen.","fr":"Chaque carte est en noir et blanc pour une impression facile et porte un QR code unique. Scannez le QR code d'une carte dans l'onglet Vérifier pour la comparer aux numéros tirés.","es":"Cada cartón es en blanco y negro para imprimir fácilmente y lleva un código QR único. Escanea el código QR de un cartón en la pestaña Verificar para compararlo con los números cantados."}
 ,"Any full row, column or diagonal wins.":{"nl":"Elke rij, kolom of diagonaal wint.","de":"Jede Reihe, Spalte oder Diagonale gewinnt.","fr":"Toute rangée, colonne ou diagonale gagne.","es":"Cualquier fila, columna o diagonal gana."}
 ,"Invalid or unrecognized card code.":{"nl":"Ongeldige of onbekende kaartcode.","de":"Ungültiger oder unbekannter Kartencode.","fr":"Code de carte invalide ou non reconnu.","es":"Código de cartón inválido o no reconocido."}
 ,"Scanner library not loaded.":{"nl":"Scannerbibliotheek niet geladen.","de":"Scanner-Bibliothek nicht geladen.","fr":"Bibliothèque scanner non chargée.","es":"Biblioteca del escáner no cargada."}
 ,"■ Stop Camera":{"nl":"■ Camera stoppen","de":"■ Kamera stoppen","fr":"■ Arrêter la caméra","es":"■ Detener cámara"}
 ,"Camera error: ":{"nl":"Camerafout: ","de":"Kamerafehler: ","fr":"Erreur caméra : ","es":"Error de cámara: "}
 ,"All numbers called.":{"nl":"Alle nummers getrokken.","de":"Alle Zahlen gezogen.","fr":"Tous les numéros tirés.","es":"Todos los números cantados."}
-,"Tap to close":{"nl":"Tik om te sluiten","de":"Tippen zum Schließen","fr":"Toucher pour fermer","es":"Toca para cerrar"}};
+,"Tap to close":{"nl":"Tik om te sluiten","de":"Tippen zum Schließen","fr":"Toucher pour fermer","es":"Toca para cerrar"}
+,"Call a bingo manually":{"nl":"Roep handmatig een bingo uit","de":"Bingo manuell ausrufen","fr":"Annoncer un bingo manuellement","es":"Cantar un bingo manualmente","pt":"Anunciar um bingo manualmente","it":"Annuncia un bingo manualmente","ru":"Объявить бинго вручную","pl":"Ogłoś bingo ręcznie","tr":"Bingo'yu elle ilan et","ja":"手動でビンゴを宣言","zh":"手动宣布宾果","ar":"أعلن البينغو يدويًا","ko":"수동으로 빙고 선언","hi":"मैन्युअल रूप से बिंगो घोषित करें"}
+,"🎉 Good Bingo!":{"nl":"🎉 Goede Bingo!","de":"🎉 Gültiges Bingo!","fr":"🎉 Bingo valide !","es":"🎉 ¡Bingo válido!","pt":"🎉 Bingo válido!","it":"🎉 Bingo valido!","ru":"🎉 Бинго засчитано!","pl":"🎉 Prawidłowe Bingo!","tr":"🎉 Geçerli Bingo!","ja":"🎉 ビンゴ成立！","zh":"🎉 有效宾果！","ar":"🎉 بينغو صحيح!","ko":"🎉 유효한 빙고!","hi":"🎉 सही बिंगो!"}
+,"❌ False Bingo!":{"nl":"❌ Valse Bingo!","de":"❌ Falsches Bingo!","fr":"❌ Faux bingo !","es":"❌ ¡Bingo falso!","pt":"❌ Bingo falso!","it":"❌ Bingo falso!","ru":"❌ Ложное бинго!","pl":"❌ Fałszywe Bingo!","tr":"❌ Yanlış Bingo!","ja":"❌ フェイクビンゴ！","zh":"❌ 假宾果！","ar":"❌ بينغو خاطئ!","ko":"❌ 가짜 빙고!","hi":"❌ गलत बिंगो!"}};
 window.ENH_TF = [{"en":"Players win when they complete: ","nl":"Spelers winnen als ze dit voltooien: ","de":"Spieler gewinnen, wenn sie Folgendes vervollständigen: ","fr":"Les joueurs gagnent en complétant : ","es":"Los jugadores ganan al completar: "},{"en":"Verifying against pattern: ","nl":"Controleren tegen patroon: ","de":"Prüfung gegen Muster: ","fr":"Vérification selon le motif : ","es":"Verificando con el patrón: "},{"en":" called","nl":" getrokken","de":" gezogen","fr":" tirés","es":" cantados"},{"en":"-ball). Change it in the Caller tab.","nl":"-ballen). Wijzig dit op het tabblad Omroeper.","de":"-Kugeln). Ändern Sie es im Ansager-Tab.","fr":"-boules). Modifiez-le dans l'onglet Annonceur.","es":"-bolas). Cámbialo en la pestaña Locutor."},{"en":"Generating ","nl":"Bezig met genereren van ","de":"Erstelle ","fr":"Génération de ","es":"Generando "},{"en":" cards…","nl":" kaarten…","de":" Karten…","fr":" cartes…","es":" cartones…"},{"en":" cards).","nl":" kaarten).","de":" Karten).","fr":" cartes).","es":" cartones)."},{"en":"Error: ","nl":"Fout: ","de":"Fehler: ","fr":"Erreur : ","es":"Error: "},{"en":"Scan to verify","nl":"Scan om te controleren","de":"Zum Prüfen scannen","fr":"Scanner pour vérifier","es":"Escanear para verificar"},{"en":"🎉 BINGO! Valid","nl":"🎉 BINGO! Geldig","de":"🎉 BINGO! Gültig","fr":"🎉 BINGO ! Valide","es":"🎉 ¡BINGO! Válido"},{"en":"🎉 FULL HOUSE","nl":"🎉 VOLLE KAART","de":"🎉 VOLLKARTE","fr":"🎉 CARTON PLEIN","es":"🎉 CARTÓN LLENO"},{"en":"🎉 Valid","nl":"🎉 Geldig","de":"🎉 Gültig","fr":"🎉 Valide","es":"🎉 Válido"},{"en":"Not yet","nl":"Nog niet","de":"Noch nicht","fr":"Pas encore","es":"Todavía no"},{"en":" incomplete","nl":" onvolledig","de":" unvollständig","fr":" incomplet","es":" incompleto"},{"en":" full row(s)","nl":" volle rij(en)","de":" volle Reihe(n)","fr":" rangée(s) complète(s)","es":" fila(s) completa(s)"},{"en":"Card #","nl":"Kaart #","de":"Karte #","fr":"Carte n°","es":"Cartón n.º"},{"en":"Any Line (row/col/diag)","nl":"Elke lijn (rij/kolom/diag)","de":"Beliebige Linie (Reihe/Spalte/Diag)","fr":"Toute ligne (rangée/col/diag)","es":"Cualquier línea (fila/col/diag)"},{"en":"Four Corners","nl":"Vier hoeken","de":"Vier Ecken","fr":"Quatre coins","es":"Cuatro esquinas"},{"en":"X (both diagonals)","nl":"X (beide diagonalen)","de":"X (beide Diagonalen)","fr":"X (deux diagonales)","es":"X (ambas diagonales)"},{"en":"Plus / Cross (+)","nl":"Plus / Kruis (+)","de":"Plus / Kreuz (+)","fr":"Plus / Croix (+)","es":"Más / Cruz (+)"},{"en":"Postage Stamp (top-right 2x2)","nl":"Postzegel (rechtsboven 2x2)","de":"Briefmarke (oben rechts 2x2)","fr":"Timbre (haut-droite 2x2)","es":"Sello (sup-der 2x2)"},{"en":"Blackout / Full House","nl":"Volle kaart / Full House","de":"Vollkarte / Full House","fr":"Carton plein / Full House","es":"Cartón lleno / Full House"},{"en":"Outer Frame","nl":"Buitenrand","de":"Äußerer Rahmen","fr":"Cadre extérieur","es":"Marco exterior"},{"en":"One Line (any row)","nl":"Eén lijn (elke rij)","de":"Eine Linie (beliebige Reihe)","fr":"Une ligne (toute rangée)","es":"Una línea (cualquier fila)"},{"en":"Full House (all 15)","nl":"Full House (alle 15)","de":"Full House (alle 15)","fr":"Full House (les 15)","es":"Full House (los 15)"},{"en":"Two Lines","nl":"Twee lijnen","de":"Zwei Linien","fr":"Deux lignes","es":"Dos líneas"},{"en":"Letter T","nl":"Letter T","de":"Buchstabe T","fr":"Lettre T","es":"Letra T"},{"en":"Letter L","nl":"Letter L","de":"Buchstabe L","fr":"Lettre L","es":"Letra L"}];
-window.ENH_MENU = {"title":{"en":"Menu","nl":"Menu","de":"Menü","fr":"Menu","es":"Menú","pt":"Menu","it":"Menu","ru":"Меню","pl":"Menu","tr":"Menü","ja":"メニュー","zh":"菜单","ar":"القائمة","ko":"메뉴","hi":"मेनू"},"language":{"en":"Language","nl":"Taal","de":"Sprache","fr":"Langue","es":"Idioma","pt":"Idioma","it":"Lingua","ru":"Язык","pl":"Język","tr":"Dil","ja":"言語","zh":"语言","ar":"اللغة","ko":"언어","hi":"भाषा"},"game":{"en":"Game settings","nl":"Spelinstellingen","de":"Spieleinstellungen","fr":"Paramètres du jeu","es":"Ajustes del juego","pt":"Configurações do jogo","it":"Impostazioni di gioco","ru":"Настройки игры","pl":"Ustawienia gry","tr":"Oyun ayarları","ja":"ゲーム設定","zh":"游戏设置","ar":"إعدادات اللعبة","ko":"게임 설정","hi":"गेम सेटिंग्स"},"print":{"en":"Print","nl":"Afdrukken","de":"Drucken","fr":"Impression","es":"Impresión","pt":"Impressão","it":"Stampa","ru":"Печать","pl":"Drukowanie","tr":"Yazdırma","ja":"印刷","zh":"打印","ar":"طباعة","ko":"인쇄","hi":"प्रिंट"},"cardsbtn":{"en":"Cards / PDF","nl":"Kaarten / PDF","de":"Karten / PDF","fr":"Cartes / PDF","es":"Cartones / PDF","pt":"Cartelas / PDF","it":"Cartelle / PDF","ru":"Карточки / PDF","pl":"Karty / PDF","tr":"Kartlar / PDF","ja":"カード / PDF","zh":"卡片 / PDF","ar":"البطاقات / PDF","ko":"카드 / PDF","hi":"कार्ड / PDF"},"verifybtn":{"en":"Verify a card","nl":"Kaart controleren","de":"Karte prüfen","fr":"Vérifier une carte","es":"Verificar un cartón","pt":"Verificar uma cartela","it":"Verifica una cartella","ru":"Проверить карточку","pl":"Sprawdź kartę","tr":"Kartı doğrula","ja":"カードを確認","zh":"验证卡片","ar":"تحقق من البطاقة","ko":"카드 확인","hi":"कार्ड सत्यापित करें"},"back":{"en":"Back to Caller","nl":"Terug naar Omroeper","de":"Zurück zum Ansager","fr":"Retour à l'annonceur","es":"Volver al locutor","pt":"Voltar ao Locutor","it":"Torna alla Chiamata","ru":"Вернуться к Ведущему","pl":"Wróć do Wywołania","tr":"Çekiciye Geri Dön","ja":"司会に戻る","zh":"返回叫号","ar":"العودة إلى المنادي","ko":"콜러로 돌아가기","hi":"कॉलर पर वापस जाएं"},"auto":{"en":"Automatic calling","nl":"Automatisch omroepen","de":"Automatische Ansage","fr":"Annonce automatique","es":"Canto automático","pt":"Chamada automática","it":"Chiamata automatica","ru":"Автовызов","pl":"Automatyczne wywołanie","tr":"Otomatik çekme","ja":"自動呼出し","zh":"自动叫号","ar":"النداء التلقائي","ko":"자동 호출","hi":"स्वचालित कॉलिंग"},"patternlabel":{"en":"Winning pattern","nl":"Winnend patroon","de":"Gewinnmuster","fr":"Motif gagnant","es":"Patrón ganador","pt":"Padrão vencedor","it":"Schema vincente","ru":"Выигрышная схема","pl":"Wzór wygranej","tr":"Kazanma deseni","ja":"勝利パターン","zh":"获胜图案","ar":"نمط الفوز","ko":"당첨 패턴","hi":"विजयी पैटर्न"}};
+window.ENH_MENU = {"title":{"en":"Menu","nl":"Menu","de":"Menü","fr":"Menu","es":"Menú","pt":"Menu","it":"Menu","ru":"Меню","pl":"Menu","tr":"Menü","ja":"メニュー","zh":"菜单","ar":"القائمة","ko":"메뉴","hi":"मेनू"},"language":{"en":"Language","nl":"Taal","de":"Sprache","fr":"Langue","es":"Idioma","pt":"Idioma","it":"Lingua","ru":"Язык","pl":"Język","tr":"Dil","ja":"言語","zh":"语言","ar":"اللغة","ko":"언어","hi":"भाषा"},"game":{"en":"Game settings","nl":"Spelinstellingen","de":"Spieleinstellungen","fr":"Paramètres du jeu","es":"Ajustes del juego","pt":"Configurações do jogo","it":"Impostazioni di gioco","ru":"Настройки игры","pl":"Ustawienia gry","tr":"Oyun ayarları","ja":"ゲーム設定","zh":"游戏设置","ar":"إعدادات اللعبة","ko":"게임 설정","hi":"गेम सेटिंग्स"},"print":{"en":"Print","nl":"Afdrukken","de":"Drucken","fr":"Impression","es":"Impresión","pt":"Impressão","it":"Stampa","ru":"Печать","pl":"Drukowanie","tr":"Yazdırma","ja":"印刷","zh":"打印","ar":"طباعة","ko":"인쇄","hi":"प्रिंट"},"cardsbtn":{"en":"Cards / PDF","nl":"Kaarten / PDF","de":"Karten / PDF","fr":"Cartes / PDF","es":"Cartones / PDF","pt":"Cartelas / PDF","it":"Cartelle / PDF","ru":"Карточки / PDF","pl":"Karty / PDF","tr":"Kartlar / PDF","ja":"カード / PDF","zh":"卡片 / PDF","ar":"البطاقات / PDF","ko":"카드 / PDF","hi":"कार्ड / PDF"},"verifybtn":{"en":"Check Bingo","nl":"Controleer Bingo","de":"Bingo prüfen","fr":"Vérifier le Bingo","es":"Comprobar Bingo","pt":"Verificar Bingo","it":"Verifica Bingo","ru":"Проверить Бинго","pl":"Sprawdź Bingo","tr":"Bingo Kontrol","ja":"ビンゴを確認","zh":"检查宾果","ar":"تحقق من البينغو","ko":"빙고 확인","hi":"बिंगो जांचें"},"back":{"en":"Back to Caller","nl":"Terug naar Omroeper","de":"Zurück zum Ansager","fr":"Retour à l'annonceur","es":"Volver al locutor","pt":"Voltar ao Locutor","it":"Torna alla Chiamata","ru":"Вернуться к Ведущему","pl":"Wróć do Wywołania","tr":"Çekiciye Geri Dön","ja":"司会に戻る","zh":"返回叫号","ar":"العودة إلى المنادي","ko":"콜러로 돌아가기","hi":"कॉलर पर वापस जाएं"},"auto":{"en":"Automatic calling","nl":"Automatisch omroepen","de":"Automatische Ansage","fr":"Annonce automatique","es":"Canto automático","pt":"Chamada automática","it":"Chiamata automatica","ru":"Автовызов","pl":"Automatyczne wywołanie","tr":"Otomatik çekme","ja":"自動呼出し","zh":"自动叫号","ar":"النداء التلقائي","ko":"자동 호출","hi":"स्वचालित कॉलिंग"},"patternlabel":{"en":"Winning pattern","nl":"Winnend patroon","de":"Gewinnmuster","fr":"Motif gagnant","es":"Patrón ganador","pt":"Padrão vencedor","it":"Schema vincente","ru":"Выигрышная схема","pl":"Wzór wygranej","tr":"Kazanma deseni","ja":"勝利パターン","zh":"获胜图案","ar":"نمط الفوز","ko":"당첨 패턴","hi":"विजयी पैटर्न"},"help":{"en":"Manual","nl":"Handleiding","de":"Anleitung","fr":"Guide","es":"Guía","pt":"Manual","it":"Guida","ru":"Руководство","pl":"Instrukcja","tr":"Kılavuz","ja":"使い方","zh":"使用说明","ar":"الدليل","ko":"사용법","hi":"गाइड"}};
 </script>
 <script>
 (function(){
@@ -952,9 +932,9 @@ var TA={
 "Full House (all 15)":{"pt":"Full House (todas as 15)","it":"Full House (tutte le 15)","ru":"Полный дом (все 15)","pl":"Full House (wszystkie 15)","tr":"Full House (tüm 15)","ja":"フルハウス（全15個）","zh":"满堂彩（全部15个）","ar":"فول هاوس (جميع الـ15)","ko":"풀하우스 (전체 15개)","hi":"फुल हाउस (सभी 15)"},
 "Called":{"pt":"Chamados","it":"Chiamati","ru":"Вызвано","pl":"Wywołane","tr":"Çekilen","ja":"呼出済み","zh":"已叫号","ar":"المُناداة","ko":"호출됨","hi":"बुलाए गए"},
 "Remaining":{"pt":"Restantes","it":"Rimanenti","ru":"Осталось","pl":"Pozostałe","tr":"Kalan","ja":"残り","zh":"剩余","ar":"المتبقية","ko":"남은 수","hi":"शेष"},
-"DRAW NEXT NUMBER":{"pt":"SORTEAR PRÓXIMO NÚMERO","it":"ESTRAI IL PROSSIMO NUMERO","ru":"СЛЕДУЮЩИЙ НОМЕР","pl":"LOSUJ NASTĘPNY NUMER","tr":"SONRAKİ SAYIYI ÇEK","ja":"次の番号を引く","zh":"抽取下一个号码","ar":"اسحب الرقم التالي","ko":"다음 번호 뽑기","hi":"अगला नंबर निकालें"},
+"Next Number":{"pt":"Próximo número","it":"Prossimo numero","ru":"Следующий номер","pl":"Następny numer","tr":"Sonraki Sayı","ja":"次の番号","zh":"下一个号码","ar":"الرقم التالي","ko":"다음 번호","hi":"अगला नंबर"},
 "Undo":{"pt":"Desfazer","it":"Annulla","ru":"Отменить","pl":"Cofnij","tr":"Geri al","ja":"元に戻す","zh":"撤销","ar":"تراجع","ko":"실행 취소","hi":"पूर्वावत करें"},
-"Reset":{"pt":"Reiniciar","it":"Reimposta","ru":"Сброс","pl":"Resetuj","tr":"Sıfırla","ja":"リセット","zh":"重置","ar":"إعادة تعيين","ko":"초기화","hi":"रीसेट"},
+"New Game":{"pt":"Novo jogo","it":"Nuova partita","ru":"Новая игра","pl":"Nowa gra","tr":"Yeni Oyun","ja":"新しいゲーム","zh":"新游戏","ar":"لعبة جديدة","ko":"새 게임","hi":"नया खेल"},
 "Automatic calling":{"pt":"Chamada automática","it":"Chiamata automatica","ru":"Автовызов","pl":"Automatyczne wywołanie","tr":"Otomatik çekme","ja":"自動呼出し","zh":"自动叫号","ar":"النداء التلقائي","ko":"자동 호출","hi":"स्वचालित कॉलिंग"},
 "Every 3 seconds":{"pt":"A cada 3 segundos","it":"Ogni 3 secondi","ru":"Каждые 3 секунды","pl":"Co 3 sekundy","tr":"Her 3 saniyede","ja":"3秒ごと","zh":"每3秒","ar":"كل 3 ثوانٍ","ko":"3초마다","hi":"हर 3 सेकंड"},
 "Every 5 seconds":{"pt":"A cada 5 segundos","it":"Ogni 5 secondi","ru":"Каждые 5 секунд","pl":"Co 5 sekund","tr":"Her 5 saniyede","ja":"5秒ごと","zh":"每5秒","ar":"كل 5 ثوانٍ","ko":"5초마다","hi":"हर 5 सेकंड"},
@@ -1135,12 +1115,15 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
     langBar.appendChild(b);
   });
 
-  // ---------- app bar (title + hamburger) ----------
+  // ---------- app bar (titel + hamburger) ----------
   var bar=document.createElement('div'); bar.id='appbar';
   h1.insertAdjacentElement('beforebegin', bar);
-  bar.appendChild(h1);
+  // titel-groep: app-naam + " - " + speltitel als één doorlopende, terugloopbare tekst
+  var titleGroup=document.createElement('div'); titleGroup.id='titleGroup';
+  titleGroup.appendChild(h1);
   var _gtBar=document.getElementById('callerGameTitle');
-  if(_gtBar) bar.appendChild(_gtBar); // spelnaam naast de titel
+  if(_gtBar) titleGroup.appendChild(_gtBar);
+  bar.appendChild(titleGroup);
   var mb=document.createElement('button'); mb.id='menuBtn'; mb.setAttribute('aria-label','Menu'); mb.innerHTML='&#9776;';
   bar.appendChild(mb);
 
@@ -1171,68 +1154,151 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
   if(patternCard) drawer.appendChild(patternCard);
   drawer.appendChild(sect('auto','Automatic calling'));
   if(autoCard) drawer.appendChild(autoCard);
-  // ---------- theme picker ----------
-  var THEMES=[
-    {id:'default',     icon:'🎱', label:'Default',     emojis:[]},
-    {id:'bloemen',     icon:'🌸', label:'Bloemen',     emojis:['🌸','🌺','🌼','🌷','🌻','🌹']},
-    {id:'ajax',        icon:'⚽', label:'Ajax',        emojis:['⚽','🏆','⚽','🔴','⚽','🏅']},
-    {id:'vliegtuigen', icon:'✈️', label:'Vliegtuigen', emojis:['✈️','🛫','🛬','☁️','🛩️','🌤️']},
-    {id:'sterren',     icon:'⭐', label:'Sterren',     emojis:['⭐','🌟','✨','💫','🌙','🌠']},
-    {id:'katten',      icon:'🐱', label:'Katten',      emojis:['🐱','🐾','😺','🐈','😸','🐟']},
-    {id:'nijntje',     icon:'🐰', label:'Nijntje',     emojis:['🐰','🐇','🌷','🎀','🐣','🌼']},
-  ];
-
-  // create background decor layer
-  var bgDecor=document.getElementById('bgDecor');
-  if(!bgDecor){ bgDecor=document.createElement('div'); bgDecor.id='bgDecor'; document.body.insertBefore(bgDecor,document.body.firstChild); }
-
-  function buildDecor(emojis){
-    bgDecor.innerHTML='';
-    if(!emojis||!emojis.length) return;
-    var track=document.createElement('div'); track.className='decor-track';
-    var perCol=Math.max(5, Math.floor(window.innerHeight/120));
-    ['left','right'].forEach(function(side, ci){
-      var col=document.createElement('div'); col.className='decor-col '+side;
-      for(var i=0;i<perCol;i++){
-        var s=document.createElement('span');
-        s.textContent=emojis[(i+ci)%emojis.length];
-        col.appendChild(s);
-      }
-      track.appendChild(col);
-    });
-    bgDecor.appendChild(track);
-  }
-  // herbouw kolommen bij venster-resize zodat ze de volle hoogte blijven vullen
-  window.addEventListener('resize', function(){
-    var cur=null; try{ cur=localStorage.getItem('bingoTheme'); }catch(e){}
-    var t=THEMES.find(function(x){return x.id===cur;});
-    if(t) buildDecor(t.emojis);
-  });
-
-  function applyTheme(id){
-    document.body.className=document.body.className.replace(/\btheme-\S+/g,'').trim();
-    var t=THEMES.find(function(x){return x.id===id;})||THEMES[0];
-    if(id&&id!=='default') document.body.classList.add('theme-'+id);
-    buildDecor(t.emojis);
-    document.querySelectorAll('.theme-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.theme===id); });
-    try{ localStorage.setItem('bingoTheme',id); }catch(e){}
-  }
-
-  var themeSect=document.createElement('div'); themeSect.className='drawer-section-title'; themeSect.textContent='Thema';
-  drawer.appendChild(themeSect);
-  var tp=document.createElement('div'); tp.id='themePicker'; drawer.appendChild(tp);
-  THEMES.forEach(function(t){
-    var b=document.createElement('button'); b.className='theme-btn'; b.dataset.theme=t.id;
-    b.innerHTML='<span class="theme-icon">'+t.icon+'</span><span>'+t.label+'</span>';
-    b.onclick=function(){ applyTheme(t.id); };
-    tp.appendChild(b);
-  });
-  // restore saved theme
-  try{ var _st=localStorage.getItem('bingoTheme'); if(_st) applyTheme(_st); else applyTheme('default'); }catch(e){ applyTheme('default'); }
-
   drawer.appendChild(sect('print','Print'));
   var cb=document.createElement('button'); cb.id='drawerCardsBtn'; cb.innerHTML='&#128424;&#65039; <span data-i18n-menu="cardsbtn">Cards / PDF</span>';
   drawer.appendChild(cb);
+
+  // ---------- handleiding (inklapbaar, meertalig) ----------
+  var GUIDE={
+    nl:{title:'Handleiding',sections:[
+      {h:'🎱 Nummers omroepen',items:['Tik op Volgend Nummer om een nieuw nummer te trekken — het verschijnt groot in de bal.','Zet "Elk nummer hardop uitspreken" aan om de stem te gebruiken.','Ongedaan maken haalt het laatste nummer terug; Nieuw Spel begint opnieuw.']},
+      {h:'⏱️ Automatisch omroepen',items:['Kies een interval en tik op Auto starten — de app trekt vanzelf nummers.','Tijdens het omroepen blijft het scherm aan.']},
+      {h:'🏆 Winnend patroon',items:['Kies onder Spelinstellingen welk patroon wint (bv. één lijn of volle kaart). Het patroon staat ook onder de bal.']},
+      {h:'🖨️ Kaarten maken (PDF)',items:['Open Kaarten / PDF, vul de speltitel in en kies de modus en het aantal kaarten.','Het startnummer begint op 1 maar is aanpasbaar. Tik op de PDF-knop om af te drukken.']},
+      {h:'✅ Bingo controleren',items:['Open Controleer Bingo en scan de QR-code of plak de kaartcode voor automatische controle.','Of roep zelf een Goede Bingo of Valse Bingo uit met de knoppen — met feestelijk effect.']},
+      {h:'⚙️ Overig',items:['Wissel van taal bovenin het menu. Je instellingen worden in de browser bewaard.','De app werkt ook zonder internet zodra hij één keer is geladen.']}
+    ]},
+    en:{title:'Manual',sections:[
+      {h:'🎱 Calling numbers',items:['Tap Next Number to draw a new number — it shows large in the ball.','Turn on "Speak each number aloud" to use the voice.','Undo brings back the last number; New Game starts over.']},
+      {h:'⏱️ Automatic calling',items:['Pick an interval and tap Start Auto — the app draws numbers by itself.','The screen stays awake while calling.']},
+      {h:'🏆 Winning pattern',items:['Choose under Game settings which pattern wins (e.g. one line or full house). The pattern is also shown under the ball.']},
+      {h:'🖨️ Making cards (PDF)',items:['Open Cards / PDF, enter the game title and choose the mode and number of cards.','The starting number begins at 1 but can be changed. Tap the PDF button to print.']},
+      {h:'✅ Checking bingo',items:['Open Check Bingo and scan the QR code or paste the card code for automatic checking.','Or call a Good Bingo or False Bingo yourself with the buttons — with a festive effect.']},
+      {h:'⚙️ Other',items:['Switch language at the top of the menu. Your settings are saved in the browser.','The app also works offline once it has loaded once.']}
+    ]},
+    de:{title:'Anleitung',sections:[
+      {h:'🎱 Zahlen ansagen',items:['Tippe auf Nächste Zahl, um eine neue Zahl zu ziehen — sie erscheint groß in der Kugel.','Schalte "Jede Zahl laut vorlesen" ein, um die Stimme zu nutzen.','Rückgängig holt die letzte Zahl zurück; Neues Spiel beginnt von vorn.']},
+      {h:'⏱️ Automatische Ansage',items:['Wähle ein Intervall und tippe auf Auto starten — die App zieht von selbst Zahlen.','Der Bildschirm bleibt während der Ansage an.']},
+      {h:'🏆 Gewinnmuster',items:['Wähle unter Spieleinstellungen, welches Muster gewinnt (z. B. eine Linie oder Vollkarte). Das Muster wird auch unter der Kugel angezeigt.']},
+      {h:'🖨️ Karten erstellen (PDF)',items:['Öffne Karten / PDF, gib den Spieltitel ein und wähle Modus und Kartenanzahl.','Die Startnummer beginnt bei 1, ist aber änderbar. Tippe zum Drucken auf die PDF-Schaltfläche.']},
+      {h:'✅ Bingo prüfen',items:['Öffne Bingo prüfen und scanne den QR-Code oder füge den Kartencode für die automatische Prüfung ein.','Oder rufe selbst ein Gültiges Bingo oder Falsches Bingo mit den Schaltflächen aus — mit festlichem Effekt.']},
+      {h:'⚙️ Sonstiges',items:['Wechsle die Sprache oben im Menü. Deine Einstellungen werden im Browser gespeichert.','Die App funktioniert auch offline, sobald sie einmal geladen wurde.']}
+    ]},
+    fr:{title:'Guide',sections:[
+      {h:'🎱 Annoncer les numéros',items:['Touchez Numéro suivant pour tirer un nouveau numéro — il s\'affiche en grand dans la boule.','Activez « Annoncer chaque numéro à voix haute » pour utiliser la voix.','Annuler récupère le dernier numéro ; Nouvelle partie recommence.']},
+      {h:'⏱️ Annonce automatique',items:['Choisissez un intervalle et touchez Démarrer auto — l\'application tire les numéros toute seule.','L\'écran reste allumé pendant l\'annonce.']},
+      {h:'🏆 Motif gagnant',items:['Choisissez dans Paramètres du jeu quel motif gagne (par ex. une ligne ou carton plein). Le motif est aussi affiché sous la boule.']},
+      {h:'🖨️ Créer des cartes (PDF)',items:['Ouvrez Cartes / PDF, saisissez le titre du jeu et choisissez le mode et le nombre de cartes.','Le numéro de départ commence à 1 mais est modifiable. Touchez le bouton PDF pour imprimer.']},
+      {h:'✅ Vérifier le bingo',items:['Ouvrez Vérifier le Bingo et scannez le QR code ou collez le code de carte pour une vérification automatique.','Ou annoncez vous-même un Bingo valide ou Faux bingo avec les boutons — avec un effet festif.']},
+      {h:'⚙️ Divers',items:['Changez de langue en haut du menu. Vos réglages sont enregistrés dans le navigateur.','L\'application fonctionne aussi hors ligne une fois chargée.']}
+    ]},
+    es:{title:'Guía',sections:[
+      {h:'🎱 Cantar números',items:['Toca Siguiente número para sacar un número nuevo — aparece grande en la bola.','Activa « Leer cada número en voz alta » para usar la voz.','Deshacer recupera el último número; Nuevo juego empieza de nuevo.']},
+      {h:'⏱️ Canto automático',items:['Elige un intervalo y toca Iniciar auto — la app saca números sola.','La pantalla permanece encendida durante el canto.']},
+      {h:'🏆 Patrón ganador',items:['Elige en Ajustes del juego qué patrón gana (p. ej. una línea o cartón lleno). El patrón también se muestra bajo la bola.']},
+      {h:'🖨️ Crear cartones (PDF)',items:['Abre Cartones / PDF, escribe el título del juego y elige el modo y el número de cartones.','El número inicial empieza en 1 pero se puede cambiar. Toca el botón PDF para imprimir.']},
+      {h:'✅ Comprobar bingo',items:['Abre Comprobar Bingo y escanea el código QR o pega el código del cartón para comprobar automáticamente.','O canta tú mismo un Bingo válido o Bingo falso con los botones — con efecto festivo.']},
+      {h:'⚙️ Otros',items:['Cambia el idioma en la parte superior del menú. Tus ajustes se guardan en el navegador.','La app también funciona sin conexión una vez cargada.']}
+    ]},
+    pt:{title:'Manual',sections:[
+      {h:'🎱 Anunciar números',items:['Toque em Próximo número para sortear um novo número — ele aparece grande na bola.','Ative "Falar cada número em voz alta" para usar a voz.','Desfazer traz de volta o último número; Novo jogo recomeça.']},
+      {h:'⏱️ Chamada automática',items:['Escolha um intervalo e toque em Iniciar automático — o app sorteia números sozinho.','A tela permanece ligada durante a chamada.']},
+      {h:'🏆 Padrão vencedor',items:['Escolha em Configurações do jogo qual padrão vence (ex.: uma linha ou cartela cheia). O padrão também aparece abaixo da bola.']},
+      {h:'🖨️ Criar cartelas (PDF)',items:['Abra Cartelas / PDF, digite o título do jogo e escolha o modo e a quantidade de cartelas.','O número inicial começa em 1 mas pode ser alterado. Toque no botão PDF para imprimir.']},
+      {h:'✅ Verificar bingo',items:['Abra Verificar Bingo e escaneie o QR code ou cole o código da cartela para verificação automática.','Ou anuncie você mesmo um Bingo válido ou Bingo falso com os botões — com efeito festivo.']},
+      {h:'⚙️ Outros',items:['Troque o idioma no topo do menu. Suas configurações ficam salvas no navegador.','O app também funciona offline depois de carregado uma vez.']}
+    ]},
+    it:{title:'Guida',sections:[
+      {h:'🎱 Annunciare i numeri',items:['Tocca Prossimo numero per estrarre un nuovo numero — appare grande nella pallina.','Attiva "Pronuncia ogni numero ad alta voce" per usare la voce.','Annulla recupera l\'ultimo numero; Nuova partita ricomincia.']},
+      {h:'⏱️ Chiamata automatica',items:['Scegli un intervallo e tocca Avvia Auto — l\'app estrae i numeri da sola.','Lo schermo resta acceso durante la chiamata.']},
+      {h:'🏆 Schema vincente',items:['Scegli in Impostazioni di gioco quale schema vince (es. una linea o tutto pieno). Lo schema è mostrato anche sotto la pallina.']},
+      {h:'🖨️ Creare cartelle (PDF)',items:['Apri Cartelle / PDF, inserisci il titolo del gioco e scegli la modalità e il numero di cartelle.','Il numero iniziale parte da 1 ma è modificabile. Tocca il pulsante PDF per stampare.']},
+      {h:'✅ Verificare il bingo',items:['Apri Verifica Bingo e scansiona il QR code o incolla il codice della cartella per la verifica automatica.','Oppure annuncia tu stesso un Bingo valido o Bingo falso con i pulsanti — con effetto festoso.']},
+      {h:'⚙️ Altro',items:['Cambia lingua in alto nel menu. Le tue impostazioni vengono salvate nel browser.','L\'app funziona anche offline una volta caricata.']}
+    ]},
+    ru:{title:'Руководство',sections:[
+      {h:'🎱 Объявление номеров',items:['Нажмите Следующий номер, чтобы вытянуть новый номер — он крупно показан в шаре.','Включите «Озвучивать каждый номер», чтобы использовать голос.','Отменить возвращает последний номер; Новая игра начинает заново.']},
+      {h:'⏱️ Автовызов',items:['Выберите интервал и нажмите Запустить авто — приложение вытягивает номера само.','Экран остаётся включённым во время вызова.']},
+      {h:'🏆 Выигрышная схема',items:['Выберите в Настройках игры, какая схема выигрывает (например, одна линия или полный дом). Схема также показана под шаром.']},
+      {h:'🖨️ Создание карточек (PDF)',items:['Откройте Карточки / PDF, введите название игры и выберите режим и количество карточек.','Начальный номер начинается с 1, но его можно изменить. Нажмите кнопку PDF для печати.']},
+      {h:'✅ Проверка бинго',items:['Откройте Проверить Бинго и отсканируйте QR-код или вставьте код карточки для автоматической проверки.','Или объявите сами Бинго засчитано или Ложное бинго кнопками — с праздничным эффектом.']},
+      {h:'⚙️ Прочее',items:['Смените язык вверху меню. Ваши настройки сохраняются в браузере.','Приложение работает и без интернета после первой загрузки.']}
+    ]},
+    pl:{title:'Instrukcja',sections:[
+      {h:'🎱 Losowanie numerów',items:['Dotknij Następny numer, aby wylosować nowy numer — pojawia się duży w kuli.','Włącz „Odczytuj każdy numer głośno", aby używać głosu.','Cofnij przywraca ostatni numer; Nowa gra zaczyna od nowa.']},
+      {h:'⏱️ Automatyczne wywołanie',items:['Wybierz interwał i dotknij Uruchom Auto — aplikacja losuje numery sama.','Ekran pozostaje włączony podczas wywoływania.']},
+      {h:'🏆 Wzór wygranej',items:['Wybierz w Ustawieniach gry, który wzór wygrywa (np. jedna linia lub pełna karta). Wzór jest też pokazany pod kulą.']},
+      {h:'🖨️ Tworzenie kart (PDF)',items:['Otwórz Karty / PDF, wpisz tytuł gry i wybierz tryb oraz liczbę kart.','Numer początkowy zaczyna się od 1, ale można go zmienić. Dotknij przycisku PDF, aby wydrukować.']},
+      {h:'✅ Sprawdzanie bingo',items:['Otwórz Sprawdź Bingo i zeskanuj kod QR lub wklej kod karty, aby sprawdzić automatycznie.','Albo sam ogłoś Prawidłowe Bingo lub Fałszywe Bingo przyciskami — z efektem.']},
+      {h:'⚙️ Inne',items:['Zmień język na górze menu. Twoje ustawienia są zapisywane w przeglądarce.','Aplikacja działa też offline po jednokrotnym załadowaniu.']}
+    ]},
+    tr:{title:'Kılavuz',sections:[
+      {h:'🎱 Sayıları çekme',items:['Yeni bir sayı çekmek için Sonraki Sayı\'ya dokunun — topta büyük görünür.','Sesi kullanmak için "Her sayıyı sesli oku" seçeneğini açın.','Geri al son sayıyı geri getirir; Yeni Oyun baştan başlar.']},
+      {h:'⏱️ Otomatik çekme',items:['Bir aralık seçin ve Oto Başlat\'a dokunun — uygulama sayıları kendi çeker.','Çekim sırasında ekran açık kalır.']},
+      {h:'🏆 Kazanma deseni',items:['Oyun ayarları\'nda hangi desenin kazandığını seçin (ör. bir çizgi veya tam dolum). Desen ayrıca topun altında gösterilir.']},
+      {h:'🖨️ Kart oluşturma (PDF)',items:['Kartlar / PDF\'i açın, oyun başlığını girin ve modu ile kart sayısını seçin.','Başlangıç numarası 1\'den başlar ama değiştirilebilir. Yazdırmak için PDF düğmesine dokunun.']},
+      {h:'✅ Bingo kontrolü',items:['Bingo Kontrol\'ü açın ve otomatik kontrol için QR kodu tarayın veya kart kodunu yapıştırın.','Ya da düğmelerle kendiniz Geçerli Bingo veya Yanlış Bingo ilan edin — şenlikli efektle.']},
+      {h:'⚙️ Diğer',items:['Menünün üstünden dili değiştirin. Ayarlarınız tarayıcıda kaydedilir.','Uygulama bir kez yüklendikten sonra çevrimdışı da çalışır.']}
+    ]},
+    ja:{title:'使い方',sections:[
+      {h:'🎱 番号を読み上げる',items:['「次の番号」をタップすると新しい番号が引かれ、ボールに大きく表示されます。','音声を使うには「各番号を読み上げる」をオンにします。','「元に戻す」で直前の番号に戻り、「新しいゲーム」で最初からやり直します。']},
+      {h:'⏱️ 自動読み上げ',items:['間隔を選んで「自動開始」をタップすると、アプリが自動で番号を引きます。','読み上げ中は画面がオンのままになります。']},
+      {h:'🏆 勝利パターン',items:['「ゲーム設定」でどのパターンで勝ちかを選びます（例：1ライン、フルハウス）。パターンはボールの下にも表示されます。']},
+      {h:'🖨️ カード作成（PDF）',items:['「カード / PDF」を開き、ゲームタイトルを入力してモードとカード枚数を選びます。','開始番号は1から始まりますが変更できます。PDFボタンをタップして印刷します。']},
+      {h:'✅ ビンゴの確認',items:['「ビンゴを確認」を開き、QRコードをスキャンするかカードコードを貼り付けて自動で確認します。','またはボタンで自分で「有効なビンゴ」または「フェイクビンゴ」を宣言できます（演出付き）。']},
+      {h:'⚙️ その他',items:['メニュー上部で言語を切り替えます。設定はブラウザに保存されます。','一度読み込めば、アプリはオフラインでも動作します。']}
+    ]},
+    zh:{title:'使用说明',sections:[
+      {h:'🎱 报号',items:['点击"下一个号码"抽取新号码——它会大大地显示在球里。','打开"朗读每个号码"以使用语音。','"撤销"找回上一个号码；"新游戏"重新开始。']},
+      {h:'⏱️ 自动报号',items:['选择间隔并点击"开始自动"——应用会自动抽号。','报号期间屏幕保持常亮。']},
+      {h:'🏆 获胜图案',items:['在"游戏设置"中选择哪种图案获胜（如一行或满堂彩）。图案也显示在球下方。']},
+      {h:'🖨️ 制作卡片（PDF）',items:['打开"卡片 / PDF"，输入游戏标题并选择模式和卡片数量。','起始编号从1开始，但可更改。点击PDF按钮进行打印。']},
+      {h:'✅ 检查宾果',items:['打开"检查宾果"，扫描二维码或粘贴卡片代码进行自动检查。','或用按钮自己宣布"有效宾果"或"假宾果"——带有庆祝效果。']},
+      {h:'⚙️ 其他',items:['在菜单顶部切换语言。你的设置会保存在浏览器中。','应用加载一次后也可离线使用。']}
+    ]},
+    ar:{title:'الدليل',sections:[
+      {h:'🎱 إعلان الأرقام',items:['اضغط على الرقم التالي لسحب رقم جديد — يظهر كبيرًا في الكرة.','فعّل "نطق كل رقم بصوت عالٍ" لاستخدام الصوت.','تراجع يعيد آخر رقم؛ لعبة جديدة تبدأ من جديد.']},
+      {h:'⏱️ النداء التلقائي',items:['اختر فاصلًا زمنيًا واضغط بدء تلقائي — يسحب التطبيق الأرقام تلقائيًا.','تبقى الشاشة مضاءة أثناء النداء.']},
+      {h:'🏆 نمط الفوز',items:['اختر من إعدادات اللعبة أي نمط يفوز (مثل خط واحد أو فول هاوس). يظهر النمط أيضًا أسفل الكرة.']},
+      {h:'🖨️ إنشاء البطاقات (PDF)',items:['افتح البطاقات / PDF، أدخل عنوان اللعبة واختر الوضع وعدد البطاقات.','يبدأ رقم البداية من 1 لكن يمكن تغييره. اضغط زر PDF للطباعة.']},
+      {h:'✅ التحقق من البينغو',items:['افتح تحقق من البينغو وامسح رمز QR أو الصق رمز البطاقة للتحقق التلقائي.','أو أعلن بنفسك بينغو صحيح أو بينغو خاطئ بالأزرار — مع تأثير احتفالي.']},
+      {h:'⚙️ أخرى',items:['غيّر اللغة أعلى القائمة. تُحفظ إعداداتك في المتصفح.','يعمل التطبيق دون إنترنت بعد تحميله مرة واحدة.']}
+    ]},
+    ko:{title:'사용법',sections:[
+      {h:'🎱 번호 부르기',items:['다음 번호를 누르면 새 번호가 뽑혀 공에 크게 표시됩니다.','음성을 사용하려면 "각 번호를 소리내어 읽기"를 켜세요.','실행 취소는 마지막 번호를 되돌리고, 새 게임은 처음부터 시작합니다.']},
+      {h:'⏱️ 자동 호출',items:['간격을 선택하고 자동 시작을 누르면 앱이 스스로 번호를 뽑습니다.','호출 중에는 화면이 켜진 상태로 유지됩니다.']},
+      {h:'🏆 당첨 패턴',items:['게임 설정에서 어떤 패턴이 이기는지 선택하세요(예: 한 줄 또는 풀하우스). 패턴은 공 아래에도 표시됩니다.']},
+      {h:'🖨️ 카드 만들기(PDF)',items:['카드 / PDF를 열고 게임 제목을 입력한 뒤 모드와 카드 수를 선택하세요.','시작 번호는 1부터지만 변경할 수 있습니다. 인쇄하려면 PDF 버튼을 누르세요.']},
+      {h:'✅ 빙고 확인',items:['빙고 확인을 열고 QR 코드를 스캔하거나 카드 코드를 붙여넣어 자동으로 확인하세요.','또는 버튼으로 직접 유효한 빙고 또는 가짜 빙고를 선언하세요 — 축하 효과와 함께.']},
+      {h:'⚙️ 기타',items:['메뉴 상단에서 언어를 바꾸세요. 설정은 브라우저에 저장됩니다.','앱은 한 번 로드되면 오프라인에서도 작동합니다.']}
+    ]},
+    hi:{title:'गाइड',sections:[
+      {h:'🎱 नंबर बुलाना',items:['नया नंबर निकालने के लिए अगला नंबर पर टैप करें — यह गेंद में बड़ा दिखता है।','आवाज़ का उपयोग करने के लिए "प्रत्येक नंबर जोर से बोलें" चालू करें।','पूर्ववत करें अंतिम नंबर वापस लाता है; नया खेल फिर से शुरू करता है।']},
+      {h:'⏱️ स्वचालित कॉलिंग',items:['एक अंतराल चुनें और ऑटो शुरू करें पर टैप करें — ऐप खुद नंबर निकालता है।','कॉलिंग के दौरान स्क्रीन चालू रहती है।']},
+      {h:'🏆 विजयी पैटर्न',items:['गेम सेटिंग्स में चुनें कि कौन सा पैटर्न जीतता है (जैसे एक रेखा या फुल हाउस)। पैटर्न गेंद के नीचे भी दिखता है।']},
+      {h:'🖨️ कार्ड बनाना (PDF)',items:['कार्ड / PDF खोलें, गेम शीर्षक दर्ज करें और मोड व कार्डों की संख्या चुनें।','प्रारंभिक नंबर 1 से शुरू होता है लेकिन बदला जा सकता है। प्रिंट करने के लिए PDF बटन टैप करें।']},
+      {h:'✅ बिंगो जांचना',items:['बिंगो जांचें खोलें और स्वचालित जांच के लिए QR कोड स्कैन करें या कार्ड कोड पेस्ट करें।','या बटनों से खुद सही बिंगो या गलत बिंगो घोषित करें — उत्सव प्रभाव के साथ।']},
+      {h:'⚙️ अन्य',items:['मेनू के शीर्ष पर भाषा बदलें। आपकी सेटिंग्स ब्राउज़र में सहेजी जाती हैं।','एक बार लोड होने के बाद ऐप ऑफ़लाइन भी काम करता है।']}
+    ]}
+  };
+  drawer.appendChild(sect('help','Manual'));
+  var guideBox=document.createElement('details'); guideBox.id='guideBox';
+  var guideSum=document.createElement('summary'); guideSum.innerHTML='📖 <span id="guideTitle">Handleiding</span>';
+  var guideContent=document.createElement('div'); guideContent.className='guide-content';
+  guideBox.appendChild(guideSum); guideBox.appendChild(guideContent);
+  drawer.appendChild(guideBox);
+  window.__renderGuide=function(lang){
+    var g=GUIDE[lang]||GUIDE.en;
+    document.getElementById('guideTitle').textContent=g.title;
+    var html='';
+    g.sections.forEach(function(s){
+      html+='<h4>'+s.h+'</h4><ul>';
+      s.items.forEach(function(it){ html+='<li>'+it+'</li>'; });
+      html+='</ul>';
+    });
+    guideContent.innerHTML=html;
+  };
+  window.__renderGuide(window.__currentLang||DEFAULT_LANG);
 
   // ---------- header: winnend patroon + spelnaam naast elkaar ----------
   var badge=document.createElement('div'); badge.id='patternBadge';
@@ -1253,15 +1319,11 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
   var psel=document.getElementById('patternSel');
   if(psel) psel.addEventListener('change', function(){ setTimeout(window.__syncPatternBadge,30); });
 
-  // ---------- verify shortcut button: groen, direct na "Auto" ----------
+  // ---------- "Controleer Bingo"-knop: groen, in de bovenste rij ----------
   var vb=document.createElement('button'); vb.id='verifyShortcut'; vb.className='btn green act';
   vb.innerHTML='&#128269; <span data-i18n-menu="verifybtn">Verify a card</span>';
-  var grid=mainCard.querySelector('.action-grid');
-  if(grid){
-    var autoBtn=document.getElementById('mainAutoBtn');
-    if(autoBtn && autoBtn.nextSibling) grid.insertBefore(vb, autoBtn.nextSibling);
-    else grid.appendChild(vb);
-  } else mainCard.appendChild(vb);
+  var topRow=mainCard.querySelector('.action-row.r3');
+  if(topRow) topRow.appendChild(vb); else mainCard.appendChild(vb);
 
   // ---------- back buttons on print + verify ----------
   function addBack(panelId){
@@ -1275,7 +1337,7 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
   addBack('panel-print'); addBack('panel-verify');
 
   // ---------- wire events ----------
-  function openDrawer(){ ov.classList.add('open'); }
+  function openDrawer(){ if(window.__renderGuide) window.__renderGuide(window.__currentLang||'nl'); ov.classList.add('open'); }
   function closeDrawer(){ ov.classList.remove('open'); }
   mb.onclick=openDrawer;
   document.getElementById('closeDrawer').onclick=closeDrawer;
@@ -1295,7 +1357,7 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
   var pdf=document.getElementById('pdfTitle');
   if(pdf){
     pdf.value=PDF_DEFAULT; pdf.defaultValue=PDF_DEFAULT;
-    function syncGameTitle(){ var t=document.getElementById('callerGameTitle'); if(t) t.textContent=pdf.value||PDF_DEFAULT; }
+    function syncGameTitle(){ var t=document.getElementById('callerGameTitle'); if(t){ var v=(pdf.value||'').trim(); t.textContent = v ? (' - '+v) : ''; } }
     pdf.addEventListener('input', syncGameTitle);
     syncGameTitle();
   }
@@ -1455,6 +1517,49 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
     }
     _raf=requestAnimationFrame(frame);
   }
+})();
+</script>
+
+<script>
+/* Instellingen lokaal in de browser bewaren en herstellen */
+(function(){
+  var FIELDS=[
+    {id:'mode',         ev:'change'},
+    {id:'patternSel',   ev:'change'},
+    {id:'autoInterval', ev:'change'},
+    {id:'voiceToggle',  ev:'change'},
+    {id:'pdfTitle',     ev:'input'},
+    {id:'cardMode',     ev:'change'},
+    {id:'cardCount',    ev:'input'}
+    /* cardStart bewust NIET bewaren: begint altijd op 1, wel aanpasbaar per opdracht */
+  ];
+  try{ localStorage.removeItem('bingo.cardStart'); }catch(e){}
+  function key(id){ return 'bingo.'+id; }
+  function read(el){ return el.type==='checkbox' ? (el.checked?'1':'0') : el.value; }
+  function write(el,v){ if(el.type==='checkbox') el.checked=(v==='1'); else el.value=v; }
+
+  function restore(id){
+    var el=document.getElementById(id); if(!el) return;
+    var v=null; try{ v=localStorage.getItem(key(id)); }catch(e){}
+    if(v===null) return;
+    write(el,v);
+    el.dispatchEvent(new Event('change',{bubbles:true}));
+  }
+
+  function setup(){
+    // mode eerst (rebuildt de patronen), dan patternSel, dan de rest
+    restore('mode');
+    restore('patternSel');
+    FIELDS.forEach(function(f){ if(f.id!=='mode' && f.id!=='patternSel') restore(f.id); });
+
+    FIELDS.forEach(function(f){
+      var el=document.getElementById(f.id); if(!el) return;
+      el.addEventListener(f.ev, function(){ try{ localStorage.setItem(key(f.id), read(el)); }catch(e){} });
+    });
+  }
+
+  if(document.readyState==='complete') setup();
+  else window.addEventListener('load', setup);
 })();
 </script>
 </body>
