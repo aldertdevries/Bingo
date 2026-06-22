@@ -728,6 +728,20 @@ function drawCard(doc,x,y,w,h,title,id,mode,flat,qr){
     try{ doc.addImage(ci.data, fmt, iX, iY, iW, iH); }catch(e){}
   }
 }
+function drawControlHeader(doc,title){
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(0);
+  doc.text(title.substring(0,40)+' — Controle vel', 10, 16);
+  doc.setDrawColor(180); doc.setLineWidth(0.3);
+  doc.line(10, 18, 200, 18);
+  doc.setDrawColor(0); doc.setLineWidth(0.5);
+}
+function drawControlCell(doc,x,y,w,h,id,qr){
+  doc.setDrawColor(180); doc.setLineWidth(0.2);
+  doc.rect(x,y,w,h);
+  doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(0);
+  doc.text('#'+id, x+w/2, y+4, {align:'center'});
+  if(qr){ var qrSize=Math.min(w-4,h-6); doc.addImage(qr,'PNG', x+(w-qrSize)/2, y+5, qrSize, qrSize); }
+}
 window.generatePDF=async function(){
   var status=document.getElementById('pdfStatus');
   try{
@@ -740,12 +754,25 @@ window.generatePDF=async function(){
     var doc=new jsPDF({unit:'mm',format:'a4'});
     var margin=10, cols=2, rows=3, gapX=8, gapY=8;
     var cardW=(210-2*margin-gapX*(cols-1))/cols, cardH=(297-2*margin-gapY*(rows-1))/rows;
+    var codes=[];
     for(var i=0;i<count;i++){
       var id=start+i, slot=i%6;
       if(i>0 && slot===0) doc.addPage();
       var cx=margin+(slot%cols)*(cardW+gapX), cy=margin+Math.floor(slot/cols)*(cardH+gapY);
       var flat=window.__genCard(mode), code=window.__encodeCard(mode,id,flat), qr=await qrDataURL(code,160);
+      codes.push(code);
       drawCard(doc,cx,cy,cardW,cardH,title,id,mode,flat,qr);
+    }
+    // Controle vel: 6 kolommen × 15 rijen = 90 cellen per pagina
+    var ctrlCols=6, ctrlPerPage=90, ctrlHeaderH=10;
+    var ctrlCellW=(210-2*margin)/ctrlCols, ctrlCellH=(297-2*margin-ctrlHeaderH)/15;
+    for(var j=0;j<count;j++){
+      var slot2=j%ctrlPerPage;
+      if(slot2===0){ doc.addPage(); drawControlHeader(doc,title); }
+      var col2=slot2%ctrlCols, row2=Math.floor(slot2/ctrlCols);
+      var cx2=margin+col2*ctrlCellW, cy2=margin+ctrlHeaderH+row2*ctrlCellH;
+      var qr2=await qrDataURL(codes[j],160);
+      drawControlCell(doc,cx2,cy2,ctrlCellW,ctrlCellH,start+j,qr2);
     }
     var fname=title.replace(/[^a-z0-9]+/gi,'_')+'_bingo_cards.pdf';
     doc.save(fname);
@@ -1227,7 +1254,7 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
       {h:'🎱 Nummers omroepen',items:['Tik op Volgend Nummer om een nieuw nummer te trekken — het verschijnt groot in de bal.','Zet "Elk nummer hardop uitspreken" aan om de stem te gebruiken.','Ongedaan maken haalt het laatste nummer terug; Nieuw Spel begint opnieuw.']},
       {h:'⏱️ Automatisch omroepen',items:['Kies een interval en tik op Auto starten — de app trekt vanzelf nummers.','Tijdens het omroepen blijft het scherm aan.']},
       {h:'🏆 Winnend patroon',items:['Kies onder Spelinstellingen welk patroon wint (bv. één lijn of volle kaart). Het patroon staat ook onder de bal.']},
-      {h:'🖨️ Kaarten maken (PDF)',items:['Open Kaarten / PDF, vul de speltitel in en kies de modus en het aantal kaarten.','Het startnummer begint op 1 maar is aanpasbaar. Tik op de PDF-knop om af te drukken.']},
+      {h:'🖨️ Kaarten maken (PDF)',items:['Open Kaarten / PDF, vul de speltitel in en kies de modus en het aantal kaarten.','Het startnummer begint op 1 maar is aanpasbaar. Tik op de PDF-knop om af te drukken.','Upload optioneel een afbeelding (logo) — die wordt rechts onderin elke kaart getoond, even hoog als de QR-code. Verwijderen kan met de knop "Afbeelding verwijderen".','Na de bingokaarten wordt automatisch een controle vel toegevoegd: 6 kolommen × 15 rijen met kaartnummer en QR-code per cel. Scan de QR om een beschadigde kaart te identificeren.']},
       {h:'✅ Bingo controleren',items:['Open Controleer Bingo en scan de QR-code of plak de kaartcode voor automatische controle.','Of roep zelf een Goede Bingo of Valse Bingo uit met de knoppen — met feestelijk effect.']},
       {h:'⚙️ Overig',items:['Wissel van taal bovenin het menu. Je instellingen worden in de browser bewaard.','De app werkt ook zonder internet zodra hij één keer is geladen.']}
     ]},
@@ -1235,7 +1262,7 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
       {h:'🎱 Calling numbers',items:['Tap Next Number to draw a new number — it shows large in the ball.','Turn on "Speak each number aloud" to use the voice.','Undo brings back the last number; New Game starts over.']},
       {h:'⏱️ Automatic calling',items:['Pick an interval and tap Start Auto — the app draws numbers by itself.','The screen stays awake while calling.']},
       {h:'🏆 Winning pattern',items:['Choose under Game settings which pattern wins (e.g. one line or full house). The pattern is also shown under the ball.']},
-      {h:'🖨️ Making cards (PDF)',items:['Open Cards / PDF, enter the game title and choose the mode and number of cards.','The starting number begins at 1 but can be changed. Tap the PDF button to print.']},
+      {h:'🖨️ Making cards (PDF)',items:['Open Cards / PDF, enter the game title and choose the mode and number of cards.','The starting number begins at 1 but can be changed. Tap the PDF button to print.','Optionally upload an image (logo) — it appears bottom-right on every card, the same height as the QR code. Remove it with the "Remove image" button.','After the bingo cards a verification sheet is added automatically: 6 columns × 15 rows with card number and QR code per cell. Scan the QR to identify a damaged card.']},
       {h:'✅ Checking bingo',items:['Open Check Bingo and scan the QR code or paste the card code for automatic checking.','Or call a Good Bingo or False Bingo yourself with the buttons — with a festive effect.']},
       {h:'⚙️ Other',items:['Switch language at the top of the menu. Your settings are saved in the browser.','The app also works offline once it has loaded once.']}
     ]},
@@ -1243,7 +1270,7 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
       {h:'🎱 Zahlen ansagen',items:['Tippe auf Nächste Zahl, um eine neue Zahl zu ziehen — sie erscheint groß in der Kugel.','Schalte "Jede Zahl laut vorlesen" ein, um die Stimme zu nutzen.','Rückgängig holt die letzte Zahl zurück; Neues Spiel beginnt von vorn.']},
       {h:'⏱️ Automatische Ansage',items:['Wähle ein Intervall und tippe auf Auto starten — die App zieht von selbst Zahlen.','Der Bildschirm bleibt während der Ansage an.']},
       {h:'🏆 Gewinnmuster',items:['Wähle unter Spieleinstellungen, welches Muster gewinnt (z. B. eine Linie oder Vollkarte). Das Muster wird auch unter der Kugel angezeigt.']},
-      {h:'🖨️ Karten erstellen (PDF)',items:['Öffne Karten / PDF, gib den Spieltitel ein und wähle Modus und Kartenanzahl.','Die Startnummer beginnt bei 1, ist aber änderbar. Tippe zum Drucken auf die PDF-Schaltfläche.']},
+      {h:'🖨️ Karten erstellen (PDF)',items:['Öffne Karten / PDF, gib den Spieltitel ein und wähle Modus und Kartenanzahl.','Die Startnummer beginnt bei 1, ist aber änderbar. Tippe zum Drucken auf die PDF-Schaltfläche.','Optional ein Bild (Logo) hochladen — es erscheint unten rechts auf jeder Karte, gleich hoch wie der QR-Code. Mit „Bild entfernen" löschen.','Nach den Bingokarten wird automatisch ein Kontrollblatt hinzugefügt: 6 Spalten × 15 Zeilen mit Kartennummer und QR-Code pro Zelle. QR scannen, um eine beschädigte Karte zu identifizieren.']},
       {h:'✅ Bingo prüfen',items:['Öffne Bingo prüfen und scanne den QR-Code oder füge den Kartencode für die automatische Prüfung ein.','Oder rufe selbst ein Gültiges Bingo oder Falsches Bingo mit den Schaltflächen aus — mit festlichem Effekt.']},
       {h:'⚙️ Sonstiges',items:['Wechsle die Sprache oben im Menü. Deine Einstellungen werden im Browser gespeichert.','Die App funktioniert auch offline, sobald sie einmal geladen wurde.']}
     ]},
@@ -1251,7 +1278,7 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
       {h:'🎱 Annoncer les numéros',items:['Touchez Numéro suivant pour tirer un nouveau numéro — il s\'affiche en grand dans la boule.','Activez « Annoncer chaque numéro à voix haute » pour utiliser la voix.','Annuler récupère le dernier numéro ; Nouvelle partie recommence.']},
       {h:'⏱️ Annonce automatique',items:['Choisissez un intervalle et touchez Démarrer auto — l\'application tire les numéros toute seule.','L\'écran reste allumé pendant l\'annonce.']},
       {h:'🏆 Motif gagnant',items:['Choisissez dans Paramètres du jeu quel motif gagne (par ex. une ligne ou carton plein). Le motif est aussi affiché sous la boule.']},
-      {h:'🖨️ Créer des cartes (PDF)',items:['Ouvrez Cartes / PDF, saisissez le titre du jeu et choisissez le mode et le nombre de cartes.','Le numéro de départ commence à 1 mais est modifiable. Touchez le bouton PDF pour imprimer.']},
+      {h:'🖨️ Créer des cartes (PDF)',items:['Ouvrez Cartes / PDF, saisissez le titre du jeu et choisissez le mode et le nombre de cartes.','Le numéro de départ commence à 1 mais est modifiable. Touchez le bouton PDF pour imprimer.','Importez optionnellement une image (logo) — elle apparaît en bas à droite de chaque carte, à la même hauteur que le QR code. Supprimez-la avec le bouton « Supprimer l\'image ».','Après les cartes de bingo, une feuille de contrôle est ajoutée automatiquement : 6 colonnes × 15 lignes avec numéro de carte et QR code par cellule. Scannez le QR pour identifier une carte endommagée.']},
       {h:'✅ Vérifier le bingo',items:['Ouvrez Vérifier le Bingo et scannez le QR code ou collez le code de carte pour une vérification automatique.','Ou annoncez vous-même un Bingo valide ou Faux bingo avec les boutons — avec un effet festif.']},
       {h:'⚙️ Divers',items:['Changez de langue en haut du menu. Vos réglages sont enregistrés dans le navigateur.','L\'application fonctionne aussi hors ligne une fois chargée.']}
     ]},
@@ -1259,7 +1286,7 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
       {h:'🎱 Cantar números',items:['Toca Siguiente número para sacar un número nuevo — aparece grande en la bola.','Activa « Leer cada número en voz alta » para usar la voz.','Deshacer recupera el último número; Nuevo juego empieza de nuevo.']},
       {h:'⏱️ Canto automático',items:['Elige un intervalo y toca Iniciar auto — la app saca números sola.','La pantalla permanece encendida durante el canto.']},
       {h:'🏆 Patrón ganador',items:['Elige en Ajustes del juego qué patrón gana (p. ej. una línea o cartón lleno). El patrón también se muestra bajo la bola.']},
-      {h:'🖨️ Crear cartones (PDF)',items:['Abre Cartones / PDF, escribe el título del juego y elige el modo y el número de cartones.','El número inicial empieza en 1 pero se puede cambiar. Toca el botón PDF para imprimir.']},
+      {h:'🖨️ Crear cartones (PDF)',items:['Abre Cartones / PDF, escribe el título del juego y elige el modo y el número de cartones.','El número inicial empieza en 1 pero se puede cambiar. Toca el botón PDF para imprimir.','Sube opcionalmente una imagen (logo) — aparece abajo a la derecha en cada cartón, con la misma altura que el código QR. Elimínala con el botón «Eliminar imagen».','Tras los cartones de bingo se añade automáticamente una hoja de control: 6 columnas × 15 filas con número de cartón y código QR por celda. Escanea el QR para identificar un cartón dañado.']},
       {h:'✅ Comprobar bingo',items:['Abre Comprobar Bingo y escanea el código QR o pega el código del cartón para comprobar automáticamente.','O canta tú mismo un Bingo válido o Bingo falso con los botones — con efecto festivo.']},
       {h:'⚙️ Otros',items:['Cambia el idioma en la parte superior del menú. Tus ajustes se guardan en el navegador.','La app también funciona sin conexión una vez cargada.']}
     ]},
@@ -1267,7 +1294,7 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
       {h:'🎱 Anunciar números',items:['Toque em Próximo número para sortear um novo número — ele aparece grande na bola.','Ative "Falar cada número em voz alta" para usar a voz.','Desfazer traz de volta o último número; Novo jogo recomeça.']},
       {h:'⏱️ Chamada automática',items:['Escolha um intervalo e toque em Iniciar automático — o app sorteia números sozinho.','A tela permanece ligada durante a chamada.']},
       {h:'🏆 Padrão vencedor',items:['Escolha em Configurações do jogo qual padrão vence (ex.: uma linha ou cartela cheia). O padrão também aparece abaixo da bola.']},
-      {h:'🖨️ Criar cartelas (PDF)',items:['Abra Cartelas / PDF, digite o título do jogo e escolha o modo e a quantidade de cartelas.','O número inicial começa em 1 mas pode ser alterado. Toque no botão PDF para imprimir.']},
+      {h:'🖨️ Criar cartelas (PDF)',items:['Abra Cartelas / PDF, digite o título do jogo e escolha o modo e a quantidade de cartelas.','O número inicial começa em 1 mas pode ser alterado. Toque no botão PDF para imprimir.','Carregue opcionalmente uma imagem (logo) — ela aparece no canto inferior direito de cada cartela, com a mesma altura do QR code. Remova-a com o botão «Remover imagem».','Após as cartelas de bingo é adicionada automaticamente uma folha de controle: 6 colunas × 15 linhas com número da cartela e QR code por célula. Escaneie o QR para identificar uma cartela danificada.']},
       {h:'✅ Verificar bingo',items:['Abra Verificar Bingo e escaneie o QR code ou cole o código da cartela para verificação automática.','Ou anuncie você mesmo um Bingo válido ou Bingo falso com os botões — com efeito festivo.']},
       {h:'⚙️ Outros',items:['Troque o idioma no topo do menu. Suas configurações ficam salvas no navegador.','O app também funciona offline depois de carregado uma vez.']}
     ]},
@@ -1275,7 +1302,7 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
       {h:'🎱 Annunciare i numeri',items:['Tocca Prossimo numero per estrarre un nuovo numero — appare grande nella pallina.','Attiva "Pronuncia ogni numero ad alta voce" per usare la voce.','Annulla recupera l\'ultimo numero; Nuova partita ricomincia.']},
       {h:'⏱️ Chiamata automatica',items:['Scegli un intervallo e tocca Avvia Auto — l\'app estrae i numeri da sola.','Lo schermo resta acceso durante la chiamata.']},
       {h:'🏆 Schema vincente',items:['Scegli in Impostazioni di gioco quale schema vince (es. una linea o tutto pieno). Lo schema è mostrato anche sotto la pallina.']},
-      {h:'🖨️ Creare cartelle (PDF)',items:['Apri Cartelle / PDF, inserisci il titolo del gioco e scegli la modalità e il numero di cartelle.','Il numero iniziale parte da 1 ma è modificabile. Tocca il pulsante PDF per stampare.']},
+      {h:'🖨️ Creare cartelle (PDF)',items:['Apri Cartelle / PDF, inserisci il titolo del gioco e scegli la modalità e il numero di cartelle.','Il numero iniziale parte da 1 ma è modificabile. Tocca il pulsante PDF per stampare.','Carica opzionalmente un\'immagine (logo) — appare in basso a destra su ogni cartella, alla stessa altezza del QR code. Rimuovila con il pulsante «Rimuovi immagine».','Dopo le cartelle di bingo viene aggiunto automaticamente un foglio di controllo: 6 colonne × 15 righe con numero cartella e QR code per cella. Scansiona il QR per identificare una cartella danneggiata.']},
       {h:'✅ Verificare il bingo',items:['Apri Verifica Bingo e scansiona il QR code o incolla il codice della cartella per la verifica automatica.','Oppure annuncia tu stesso un Bingo valido o Bingo falso con i pulsanti — con effetto festoso.']},
       {h:'⚙️ Altro',items:['Cambia lingua in alto nel menu. Le tue impostazioni vengono salvate nel browser.','L\'app funziona anche offline una volta caricata.']}
     ]},
@@ -1283,7 +1310,7 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
       {h:'🎱 Объявление номеров',items:['Нажмите Следующий номер, чтобы вытянуть новый номер — он крупно показан в шаре.','Включите «Озвучивать каждый номер», чтобы использовать голос.','Отменить возвращает последний номер; Новая игра начинает заново.']},
       {h:'⏱️ Автовызов',items:['Выберите интервал и нажмите Запустить авто — приложение вытягивает номера само.','Экран остаётся включённым во время вызова.']},
       {h:'🏆 Выигрышная схема',items:['Выберите в Настройках игры, какая схема выигрывает (например, одна линия или полный дом). Схема также показана под шаром.']},
-      {h:'🖨️ Создание карточек (PDF)',items:['Откройте Карточки / PDF, введите название игры и выберите режим и количество карточек.','Начальный номер начинается с 1, но его можно изменить. Нажмите кнопку PDF для печати.']},
+      {h:'🖨️ Создание карточек (PDF)',items:['Откройте Карточки / PDF, введите название игры и выберите режим и количество карточек.','Начальный номер начинается с 1, но его можно изменить. Нажмите кнопку PDF для печати.','При желании загрузите изображение (логотип) — оно появится в правом нижнем углу каждой карточки, той же высоты, что и QR-код. Удалить можно кнопкой «Удалить изображение».','После карточек бинго автоматически добавляется контрольный лист: 6 столбцов × 15 строк с номером карточки и QR-кодом в каждой ячейке. Сканируйте QR, чтобы идентифицировать повреждённую карточку.']},
       {h:'✅ Проверка бинго',items:['Откройте Проверить Бинго и отсканируйте QR-код или вставьте код карточки для автоматической проверки.','Или объявите сами Бинго засчитано или Ложное бинго кнопками — с праздничным эффектом.']},
       {h:'⚙️ Прочее',items:['Смените язык вверху меню. Ваши настройки сохраняются в браузере.','Приложение работает и без интернета после первой загрузки.']}
     ]},
@@ -1291,7 +1318,7 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
       {h:'🎱 Losowanie numerów',items:['Dotknij Następny numer, aby wylosować nowy numer — pojawia się duży w kuli.','Włącz „Odczytuj każdy numer głośno", aby używać głosu.','Cofnij przywraca ostatni numer; Nowa gra zaczyna od nowa.']},
       {h:'⏱️ Automatyczne wywołanie',items:['Wybierz interwał i dotknij Uruchom Auto — aplikacja losuje numery sama.','Ekran pozostaje włączony podczas wywoływania.']},
       {h:'🏆 Wzór wygranej',items:['Wybierz w Ustawieniach gry, który wzór wygrywa (np. jedna linia lub pełna karta). Wzór jest też pokazany pod kulą.']},
-      {h:'🖨️ Tworzenie kart (PDF)',items:['Otwórz Karty / PDF, wpisz tytuł gry i wybierz tryb oraz liczbę kart.','Numer początkowy zaczyna się od 1, ale można go zmienić. Dotknij przycisku PDF, aby wydrukować.']},
+      {h:'🖨️ Tworzenie kart (PDF)',items:['Otwórz Karty / PDF, wpisz tytuł gry i wybierz tryb oraz liczbę kart.','Numer początkowy zaczyna się od 1, ale można go zmienić. Dotknij przycisku PDF, aby wydrukować.','Opcjonalnie prześlij obraz (logo) — pojawi się w prawym dolnym rogu każdej karty, tej samej wysokości co kod QR. Usuń go przyciskiem „Usuń obraz".','Po kartach bingo automatycznie dodawany jest arkusz kontrolny: 6 kolumn × 15 wierszy z numerem karty i kodem QR w każdej komórce. Zeskanuj QR, aby zidentyfikować uszkodzoną kartę.']},
       {h:'✅ Sprawdzanie bingo',items:['Otwórz Sprawdź Bingo i zeskanuj kod QR lub wklej kod karty, aby sprawdzić automatycznie.','Albo sam ogłoś Prawidłowe Bingo lub Fałszywe Bingo przyciskami — z efektem.']},
       {h:'⚙️ Inne',items:['Zmień język na górze menu. Twoje ustawienia są zapisywane w przeglądarce.','Aplikacja działa też offline po jednokrotnym załadowaniu.']}
     ]},
@@ -1299,7 +1326,7 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
       {h:'🎱 Sayıları çekme',items:['Yeni bir sayı çekmek için Sonraki Sayı\'ya dokunun — topta büyük görünür.','Sesi kullanmak için "Her sayıyı sesli oku" seçeneğini açın.','Geri al son sayıyı geri getirir; Yeni Oyun baştan başlar.']},
       {h:'⏱️ Otomatik çekme',items:['Bir aralık seçin ve Oto Başlat\'a dokunun — uygulama sayıları kendi çeker.','Çekim sırasında ekran açık kalır.']},
       {h:'🏆 Kazanma deseni',items:['Oyun ayarları\'nda hangi desenin kazandığını seçin (ör. bir çizgi veya tam dolum). Desen ayrıca topun altında gösterilir.']},
-      {h:'🖨️ Kart oluşturma (PDF)',items:['Kartlar / PDF\'i açın, oyun başlığını girin ve modu ile kart sayısını seçin.','Başlangıç numarası 1\'den başlar ama değiştirilebilir. Yazdırmak için PDF düğmesine dokunun.']},
+      {h:'🖨️ Kart oluşturma (PDF)',items:['Kartlar / PDF\'i açın, oyun başlığını girin ve modu ile kart sayısını seçin.','Başlangıç numarası 1\'den başlar ama değiştirilebilir. Yazdırmak için PDF düğmesine dokunun.','İsteğe bağlı olarak bir resim (logo) yükleyin — her kartın sağ alt köşesinde QR kodu ile aynı yükseklikte görünür. «Resmi kaldır» düğmesiyle silebilirsiniz.','Bingo kartlarından sonra otomatik olarak bir kontrol sayfası eklenir: her hücrede kart numarası ve QR kodu bulunan 6 sütun × 15 satır. Hasarlı bir kartı tanımlamak için QR\'ı tarayın.']},
       {h:'✅ Bingo kontrolü',items:['Bingo Kontrol\'ü açın ve otomatik kontrol için QR kodu tarayın veya kart kodunu yapıştırın.','Ya da düğmelerle kendiniz Geçerli Bingo veya Yanlış Bingo ilan edin — şenlikli efektle.']},
       {h:'⚙️ Diğer',items:['Menünün üstünden dili değiştirin. Ayarlarınız tarayıcıda kaydedilir.','Uygulama bir kez yüklendikten sonra çevrimdışı da çalışır.']}
     ]},
@@ -1307,7 +1334,7 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
       {h:'🎱 番号を読み上げる',items:['「次の番号」をタップすると新しい番号が引かれ、ボールに大きく表示されます。','音声を使うには「各番号を読み上げる」をオンにします。','「元に戻す」で直前の番号に戻り、「新しいゲーム」で最初からやり直します。']},
       {h:'⏱️ 自動読み上げ',items:['間隔を選んで「自動開始」をタップすると、アプリが自動で番号を引きます。','読み上げ中は画面がオンのままになります。']},
       {h:'🏆 勝利パターン',items:['「ゲーム設定」でどのパターンで勝ちかを選びます（例：1ライン、フルハウス）。パターンはボールの下にも表示されます。']},
-      {h:'🖨️ カード作成（PDF）',items:['「カード / PDF」を開き、ゲームタイトルを入力してモードとカード枚数を選びます。','開始番号は1から始まりますが変更できます。PDFボタンをタップして印刷します。']},
+      {h:'🖨️ カード作成（PDF）',items:['「カード / PDF」を開き、ゲームタイトルを入力してモードとカード枚数を選びます。','開始番号は1から始まりますが変更できます。PDFボタンをタップして印刷します。','任意で画像（ロゴ）をアップロードできます — 各カードの右下にQRコードと同じ高さで表示されます。「画像を削除」ボタンで削除できます。','ビンゴカードの後に確認シートが自動で追加されます：各セルにカード番号とQRコードが表示された6列×15行のグリッドです。QRをスキャンして破損したカードを特定できます。']},
       {h:'✅ ビンゴの確認',items:['「ビンゴを確認」を開き、QRコードをスキャンするかカードコードを貼り付けて自動で確認します。','またはボタンで自分で「有効なビンゴ」または「フェイクビンゴ」を宣言できます（演出付き）。']},
       {h:'⚙️ その他',items:['メニュー上部で言語を切り替えます。設定はブラウザに保存されます。','一度読み込めば、アプリはオフラインでも動作します。']}
     ]},
@@ -1315,7 +1342,7 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
       {h:'🎱 报号',items:['点击"下一个号码"抽取新号码——它会大大地显示在球里。','打开"朗读每个号码"以使用语音。','"撤销"找回上一个号码；"新游戏"重新开始。']},
       {h:'⏱️ 自动报号',items:['选择间隔并点击"开始自动"——应用会自动抽号。','报号期间屏幕保持常亮。']},
       {h:'🏆 获胜图案',items:['在"游戏设置"中选择哪种图案获胜（如一行或满堂彩）。图案也显示在球下方。']},
-      {h:'🖨️ 制作卡片（PDF）',items:['打开"卡片 / PDF"，输入游戏标题并选择模式和卡片数量。','起始编号从1开始，但可更改。点击PDF按钮进行打印。']},
+      {h:'🖨️ 制作卡片（PDF）',items:['打开"卡片 / PDF"，输入游戏标题并选择模式和卡片数量。','起始编号从1开始，但可更改。点击PDF按钮进行打印。','可选上传图片（logo）——显示在每张卡片右下角，与二维码等高。点击"删除图片"按钮可移除。','宾果卡片之后会自动添加一张核对表：每个单元格显示卡片编号和二维码，共6列×15行。扫描二维码可识别损坏的卡片。']},
       {h:'✅ 检查宾果',items:['打开"检查宾果"，扫描二维码或粘贴卡片代码进行自动检查。','或用按钮自己宣布"有效宾果"或"假宾果"——带有庆祝效果。']},
       {h:'⚙️ 其他',items:['在菜单顶部切换语言。你的设置会保存在浏览器中。','应用加载一次后也可离线使用。']}
     ]},
@@ -1323,7 +1350,7 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
       {h:'🎱 إعلان الأرقام',items:['اضغط على الرقم التالي لسحب رقم جديد — يظهر كبيرًا في الكرة.','فعّل "نطق كل رقم بصوت عالٍ" لاستخدام الصوت.','تراجع يعيد آخر رقم؛ لعبة جديدة تبدأ من جديد.']},
       {h:'⏱️ النداء التلقائي',items:['اختر فاصلًا زمنيًا واضغط بدء تلقائي — يسحب التطبيق الأرقام تلقائيًا.','تبقى الشاشة مضاءة أثناء النداء.']},
       {h:'🏆 نمط الفوز',items:['اختر من إعدادات اللعبة أي نمط يفوز (مثل خط واحد أو فول هاوس). يظهر النمط أيضًا أسفل الكرة.']},
-      {h:'🖨️ إنشاء البطاقات (PDF)',items:['افتح البطاقات / PDF، أدخل عنوان اللعبة واختر الوضع وعدد البطاقات.','يبدأ رقم البداية من 1 لكن يمكن تغييره. اضغط زر PDF للطباعة.']},
+      {h:'🖨️ إنشاء البطاقات (PDF)',items:['افتح البطاقات / PDF، أدخل عنوان اللعبة واختر الوضع وعدد البطاقات.','يبدأ رقم البداية من 1 لكن يمكن تغييره. اضغط زر PDF للطباعة.','يمكنك اختياريًا رفع صورة (شعار) — تظهر في أسفل يمين كل بطاقة بنفس ارتفاع رمز QR. احذفها بزر «إزالة الصورة».','بعد بطاقات البينغو تُضاف تلقائياً ورقة تحكم: 6 أعمدة × 15 صفاً مع رقم البطاقة ورمز QR في كل خلية. امسح رمز QR لتحديد بطاقة تالفة.']},
       {h:'✅ التحقق من البينغو',items:['افتح تحقق من البينغو وامسح رمز QR أو الصق رمز البطاقة للتحقق التلقائي.','أو أعلن بنفسك بينغو صحيح أو بينغو خاطئ بالأزرار — مع تأثير احتفالي.']},
       {h:'⚙️ أخرى',items:['غيّر اللغة أعلى القائمة. تُحفظ إعداداتك في المتصفح.','يعمل التطبيق دون إنترنت بعد تحميله مرة واحدة.']}
     ]},
@@ -1331,7 +1358,7 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
       {h:'🎱 번호 부르기',items:['다음 번호를 누르면 새 번호가 뽑혀 공에 크게 표시됩니다.','음성을 사용하려면 "각 번호를 소리내어 읽기"를 켜세요.','실행 취소는 마지막 번호를 되돌리고, 새 게임은 처음부터 시작합니다.']},
       {h:'⏱️ 자동 호출',items:['간격을 선택하고 자동 시작을 누르면 앱이 스스로 번호를 뽑습니다.','호출 중에는 화면이 켜진 상태로 유지됩니다.']},
       {h:'🏆 당첨 패턴',items:['게임 설정에서 어떤 패턴이 이기는지 선택하세요(예: 한 줄 또는 풀하우스). 패턴은 공 아래에도 표시됩니다.']},
-      {h:'🖨️ 카드 만들기(PDF)',items:['카드 / PDF를 열고 게임 제목을 입력한 뒤 모드와 카드 수를 선택하세요.','시작 번호는 1부터지만 변경할 수 있습니다. 인쇄하려면 PDF 버튼을 누르세요.']},
+      {h:'🖨️ 카드 만들기(PDF)',items:['카드 / PDF를 열고 게임 제목을 입력한 뒤 모드와 카드 수를 선택하세요.','시작 번호는 1부터지만 변경할 수 있습니다. 인쇄하려면 PDF 버튼을 누르세요.','선택적으로 이미지(로고)를 업로드할 수 있습니다 — 각 카드 오른쪽 하단에 QR 코드와 같은 높이로 표시됩니다. «이미지 제거» 버튼으로 삭제할 수 있습니다.','빙고 카드 뒤에 자동으로 확인 시트가 추가됩니다: 각 셀에 카드 번호와 QR 코드가 있는 6열 × 15행 그리드. QR을 스캔하면 손상된 카드를 확인할 수 있습니다.']},
       {h:'✅ 빙고 확인',items:['빙고 확인을 열고 QR 코드를 스캔하거나 카드 코드를 붙여넣어 자동으로 확인하세요.','또는 버튼으로 직접 유효한 빙고 또는 가짜 빙고를 선언하세요 — 축하 효과와 함께.']},
       {h:'⚙️ 기타',items:['메뉴 상단에서 언어를 바꾸세요. 설정은 브라우저에 저장됩니다.','앱은 한 번 로드되면 오프라인에서도 작동합니다.']}
     ]},
@@ -1339,7 +1366,7 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
       {h:'🎱 नंबर बुलाना',items:['नया नंबर निकालने के लिए अगला नंबर पर टैप करें — यह गेंद में बड़ा दिखता है।','आवाज़ का उपयोग करने के लिए "प्रत्येक नंबर जोर से बोलें" चालू करें।','पूर्ववत करें अंतिम नंबर वापस लाता है; नया खेल फिर से शुरू करता है।']},
       {h:'⏱️ स्वचालित कॉलिंग',items:['एक अंतराल चुनें और ऑटो शुरू करें पर टैप करें — ऐप खुद नंबर निकालता है।','कॉलिंग के दौरान स्क्रीन चालू रहती है।']},
       {h:'🏆 विजयी पैटर्न',items:['गेम सेटिंग्स में चुनें कि कौन सा पैटर्न जीतता है (जैसे एक रेखा या फुल हाउस)। पैटर्न गेंद के नीचे भी दिखता है।']},
-      {h:'🖨️ कार्ड बनाना (PDF)',items:['कार्ड / PDF खोलें, गेम शीर्षक दर्ज करें और मोड व कार्डों की संख्या चुनें।','प्रारंभिक नंबर 1 से शुरू होता है लेकिन बदला जा सकता है। प्रिंट करने के लिए PDF बटन टैप करें।']},
+      {h:'🖨️ कार्ड बनाना (PDF)',items:['कार्ड / PDF खोलें, गेम शीर्षक दर्ज करें और मोड व कार्डों की संख्या चुनें।','प्रारंभिक नंबर 1 से शुरू होता है लेकिन बदला जा सकता है। प्रिंट करने के लिए PDF बटन टैप करें।','वैकल्पिक रूप से एक छवि (लोगो) अपलोड करें — यह प्रत्येक कार्ड के दाईं ओर नीचे QR कोड जितनी ऊंचाई पर दिखती है। «छवि हटाएं» बटन से हटाएं।','बिंगो कार्डों के बाद स्वचालित रूप से एक नियंत्रण शीट जोड़ी जाती है: प्रत्येक सेल में कार्ड नंबर और QR कोड के साथ 6 कॉलम × 15 पंक्तियाँ। क्षतिग्रस्त कार्ड की पहचान करने के लिए QR स्कैन करें।']},
       {h:'✅ बिंगो जांचना',items:['बिंगो जांचें खोलें और स्वचालित जांच के लिए QR कोड स्कैन करें या कार्ड कोड पेस्ट करें।','या बटनों से खुद सही बिंगो या गलत बिंगो घोषित करें — उत्सव प्रभाव के साथ।']},
       {h:'⚙️ अन्य',items:['मेनू के शीर्ष पर भाषा बदलें। आपकी सेटिंग्स ब्राउज़र में सहेजी जाती हैं।','एक बार लोड होने के बाद ऐप ऑफ़लाइन भी काम करता है।']}
     ]}
