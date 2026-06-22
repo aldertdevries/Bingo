@@ -402,6 +402,8 @@ h1{
 
   <div id="panel-caller" class="panel active">
     <div class="card">
+      <label>Game title</label>
+      <input id="gameTitle" value="Aldert Bingo Paradijs" />
       <label>Game mode</label>
       <select id="mode" onchange="resetGame()">
         <option value="75">US Bingo (1–75, B-I-N-G-O)</option>
@@ -467,8 +469,6 @@ h1{
 
   <div id="panel-print" class="panel">
     <div class="card">
-      <label>PDF / Game Title</label>
-      <input id="pdfTitle" value="Bingo Night" />
       <label>Game mode for cards</label>
       <select id="cardMode">
         <option value="75">US Bingo (1–75, 5×5, FREE center)</option>
@@ -478,6 +478,12 @@ h1{
       <input id="cardCount" type="number" value="6" min="1" max="600" />
       <label>Starting card number</label>
       <input id="cardStart" type="number" value="1" min="1" />
+      <label>Image on the card (optional)</label>
+      <input id="cardImage" type="file" accept="image/png,image/jpeg" />
+      <div id="cardImageRow" style="display:none;align-items:center;gap:10px;margin-top:8px;">
+        <img id="cardImagePreview" alt="" style="height:46px;border-radius:8px;border:1px solid var(--border);background:#fff;" />
+        <button type="button" class="btn gray" id="cardImageClear" style="width:auto;margin-top:0;padding:8px 14px;font-size:13px;">Remove image</button>
+      </div>
       <button class="btn" id="pdfBtn" onclick="generatePDF()">GENERATE PRINTABLE PDF</button>
       <div class="smallnote">Each card is black &amp; white for easy printing and carries a unique QR code. Scan a card's QR code in the Verify tab to check it against the called numbers.</div>
       <div id="pdfStatus" class="muted" style="margin-top:8px;"></div>
@@ -712,11 +718,20 @@ function drawCard(doc,x,y,w,h,title,id,mode,flat,qr){
   if(qr){ doc.addImage(qr,'PNG', x+3, y+h-qrSize-1, qrSize, qrSize); }
   doc.setFont('helvetica','normal'); doc.setFontSize(6.5); doc.setTextColor(80);
   doc.text('Scan to verify', x+3+qrSize+2, y+h-qrSize+3); doc.text(title.substring(0,30), x+3+qrSize+2, y+h-qrSize+7);
+  // optionele afbeelding: rechts uitgelijnd, even hoog als de QR-code
+  var ci=window.__cardImg;
+  if(ci && ci.data && ci.w && ci.h){
+    var iH=qrSize, iW=iH*(ci.w/ci.h);
+    var maxW=w-qrSize-8; if(iW>maxW) iW=maxW; // QR nooit overlappen
+    var iX=x+w-3-iW, iY=y+h-qrSize-1;
+    var fmt=/^data:image\/jpe?g/i.test(ci.data)?'JPEG':'PNG';
+    try{ doc.addImage(ci.data, fmt, iX, iY, iW, iH); }catch(e){}
+  }
 }
 window.generatePDF=async function(){
   var status=document.getElementById('pdfStatus');
   try{
-    var title=(document.getElementById('pdfTitle').value||'Bingo').trim();
+    var title=(document.getElementById('gameTitle').value||'Bingo').trim();
     var mode=parseInt(document.getElementById('cardMode').value,10);
     var count=Math.max(1,Math.min(600,parseInt(document.getElementById('cardCount').value,10)||6));
     var start=Math.max(1,parseInt(document.getElementById('cardStart').value,10)||1);
@@ -886,7 +901,51 @@ window.toggleAuto=function(){ window.__autoState.running?window.stopAuto():windo
 document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('autoInterval').addEventListener('change',function(){ if(window.__autoState.running){ window.stopAuto(); window.startAuto(); } });
   resetGame();
+  setupCardImage();
 });
+
+// ---------- afbeelding voor op de PDF-kaart ----------
+window.__cardImg=null;
+function __showCardImg(dataURL){
+  var row=document.getElementById('cardImageRow'), pv=document.getElementById('cardImagePreview');
+  if(pv) pv.src=dataURL;
+  if(row) row.style.display='flex';
+}
+function setupCardImage(){
+  var inp=document.getElementById('cardImage'); if(!inp) return;
+  // herstel uit lokale opslag
+  try{
+    var saved=localStorage.getItem('bingo.cardImage');
+    if(saved){ var im0=new Image(); im0.onload=function(){ window.__cardImg={data:saved,w:im0.naturalWidth,h:im0.naturalHeight}; }; im0.src=saved; __showCardImg(saved); }
+  }catch(e){}
+  inp.addEventListener('change',function(){
+    var f=inp.files&&inp.files[0]; if(!f) return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      var im=new Image();
+      im.onload=function(){
+        // verkleinen tot max 600px zodat opslag en PDF compact blijven
+        var maxDim=600, sc=Math.min(1, maxDim/Math.max(im.naturalWidth,im.naturalHeight));
+        var cw=Math.max(1,Math.round(im.naturalWidth*sc)), chh=Math.max(1,Math.round(im.naturalHeight*sc));
+        var cv=document.createElement('canvas'); cv.width=cw; cv.height=chh;
+        cv.getContext('2d').drawImage(im,0,0,cw,chh);
+        var out=cv.toDataURL('image/png');
+        window.__cardImg={data:out,w:cw,h:chh};
+        try{ localStorage.setItem('bingo.cardImage', out); }catch(err){}
+        __showCardImg(out);
+      };
+      im.src=ev.target.result;
+    };
+    reader.readAsDataURL(f);
+  });
+  var clr=document.getElementById('cardImageClear');
+  if(clr) clr.addEventListener('click',function(){
+    window.__cardImg=null;
+    try{ localStorage.removeItem('bingo.cardImage'); }catch(e){}
+    inp.value='';
+    var row=document.getElementById('cardImageRow'); if(row) row.style.display='none';
+  });
+}
 
 })();
 </script>
@@ -902,7 +961,10 @@ window.ENH_T = {"🎱 Bingo Caller":{"nl":"🎱 Bingo Omroeper","de":"🎱 Bingo
 ,"Tap to close":{"nl":"Tik om te sluiten","de":"Tippen zum Schließen","fr":"Toucher pour fermer","es":"Toca para cerrar"}
 ,"Call a bingo manually":{"nl":"Roep handmatig een bingo uit","de":"Bingo manuell ausrufen","fr":"Annoncer un bingo manuellement","es":"Cantar un bingo manualmente","pt":"Anunciar um bingo manualmente","it":"Annuncia un bingo manualmente","ru":"Объявить бинго вручную","pl":"Ogłoś bingo ręcznie","tr":"Bingo'yu elle ilan et","ja":"手動でビンゴを宣言","zh":"手动宣布宾果","ar":"أعلن البينغو يدويًا","ko":"수동으로 빙고 선언","hi":"मैन्युअल रूप से बिंगो घोषित करें"}
 ,"🎉 Good Bingo!":{"nl":"🎉 Goede Bingo!","de":"🎉 Gültiges Bingo!","fr":"🎉 Bingo valide !","es":"🎉 ¡Bingo válido!","pt":"🎉 Bingo válido!","it":"🎉 Bingo valido!","ru":"🎉 Бинго засчитано!","pl":"🎉 Prawidłowe Bingo!","tr":"🎉 Geçerli Bingo!","ja":"🎉 ビンゴ成立！","zh":"🎉 有效宾果！","ar":"🎉 بينغو صحيح!","ko":"🎉 유효한 빙고!","hi":"🎉 सही बिंगो!"}
-,"❌ False Bingo!":{"nl":"❌ Valse Bingo!","de":"❌ Falsches Bingo!","fr":"❌ Faux bingo !","es":"❌ ¡Bingo falso!","pt":"❌ Bingo falso!","it":"❌ Bingo falso!","ru":"❌ Ложное бинго!","pl":"❌ Fałszywe Bingo!","tr":"❌ Yanlış Bingo!","ja":"❌ フェイクビンゴ！","zh":"❌ 假宾果！","ar":"❌ بينغو خاطئ!","ko":"❌ 가짜 빙고!","hi":"❌ गलत बिंगो!"}};
+,"❌ False Bingo!":{"nl":"❌ Valse Bingo!","de":"❌ Falsches Bingo!","fr":"❌ Faux bingo !","es":"❌ ¡Bingo falso!","pt":"❌ Bingo falso!","it":"❌ Bingo falso!","ru":"❌ Ложное бинго!","pl":"❌ Fałszywe Bingo!","tr":"❌ Yanlış Bingo!","ja":"❌ フェイクビンゴ！","zh":"❌ 假宾果！","ar":"❌ بينغو خاطئ!","ko":"❌ 가짜 빙고!","hi":"❌ गलत बिंगो!"}
+,"Game title":{"nl":"Speltitel","de":"Spieltitel","fr":"Titre du jeu","es":"Título del juego","pt":"Título do jogo","it":"Titolo del gioco","ru":"Название игры","pl":"Tytuł gry","tr":"Oyun başlığı","ja":"ゲームタイトル","zh":"游戏标题","ar":"عنوان اللعبة","ko":"게임 제목","hi":"गेम शीर्षक"}
+,"Image on the card (optional)":{"nl":"Afbeelding op de kaart (optioneel)","de":"Bild auf der Karte (optional)","fr":"Image sur la carte (facultatif)","es":"Imagen en el cartón (opcional)","pt":"Imagem na cartela (opcional)","it":"Immagine sulla cartella (facoltativa)","ru":"Изображение на карточке (необязательно)","pl":"Obraz na karcie (opcjonalnie)","tr":"Karttaki görsel (isteğe bağlı)","ja":"カードの画像（任意）","zh":"卡片上的图片（可选）","ar":"صورة على البطاقة (اختياري)","ko":"카드 이미지 (선택)","hi":"कार्ड पर छवि (वैकल्पिक)"}
+,"Remove image":{"nl":"Afbeelding verwijderen","de":"Bild entfernen","fr":"Supprimer l'image","es":"Quitar imagen","pt":"Remover imagem","it":"Rimuovi immagine","ru":"Удалить изображение","pl":"Usuń obraz","tr":"Görseli kaldır","ja":"画像を削除","zh":"移除图片","ar":"إزالة الصورة","ko":"이미지 제거","hi":"छवि हटाएं"}};
 window.ENH_TF = [{"en":"Players win when they complete: ","nl":"Spelers winnen als ze dit voltooien: ","de":"Spieler gewinnen, wenn sie Folgendes vervollständigen: ","fr":"Les joueurs gagnent en complétant : ","es":"Los jugadores ganan al completar: "},{"en":"Verifying against pattern: ","nl":"Controleren tegen patroon: ","de":"Prüfung gegen Muster: ","fr":"Vérification selon le motif : ","es":"Verificando con el patrón: "},{"en":" called","nl":" getrokken","de":" gezogen","fr":" tirés","es":" cantados"},{"en":"-ball). Change it in the Caller tab.","nl":"-ballen). Wijzig dit op het tabblad Omroeper.","de":"-Kugeln). Ändern Sie es im Ansager-Tab.","fr":"-boules). Modifiez-le dans l'onglet Annonceur.","es":"-bolas). Cámbialo en la pestaña Locutor."},{"en":"Generating ","nl":"Bezig met genereren van ","de":"Erstelle ","fr":"Génération de ","es":"Generando "},{"en":" cards…","nl":" kaarten…","de":" Karten…","fr":" cartes…","es":" cartones…"},{"en":" cards).","nl":" kaarten).","de":" Karten).","fr":" cartes).","es":" cartones)."},{"en":"Error: ","nl":"Fout: ","de":"Fehler: ","fr":"Erreur : ","es":"Error: "},{"en":"Scan to verify","nl":"Scan om te controleren","de":"Zum Prüfen scannen","fr":"Scanner pour vérifier","es":"Escanear para verificar"},{"en":"🎉 BINGO! Valid","nl":"🎉 BINGO! Geldig","de":"🎉 BINGO! Gültig","fr":"🎉 BINGO ! Valide","es":"🎉 ¡BINGO! Válido"},{"en":"🎉 FULL HOUSE","nl":"🎉 VOLLE KAART","de":"🎉 VOLLKARTE","fr":"🎉 CARTON PLEIN","es":"🎉 CARTÓN LLENO"},{"en":"🎉 Valid","nl":"🎉 Geldig","de":"🎉 Gültig","fr":"🎉 Valide","es":"🎉 Válido"},{"en":"Not yet","nl":"Nog niet","de":"Noch nicht","fr":"Pas encore","es":"Todavía no"},{"en":" incomplete","nl":" onvolledig","de":" unvollständig","fr":" incomplet","es":" incompleto"},{"en":" full row(s)","nl":" volle rij(en)","de":" volle Reihe(n)","fr":" rangée(s) complète(s)","es":" fila(s) completa(s)"},{"en":"Card #","nl":"Kaart #","de":"Karte #","fr":"Carte n°","es":"Cartón n.º"},{"en":"Any Line (row/col/diag)","nl":"Elke lijn (rij/kolom/diag)","de":"Beliebige Linie (Reihe/Spalte/Diag)","fr":"Toute ligne (rangée/col/diag)","es":"Cualquier línea (fila/col/diag)"},{"en":"Four Corners","nl":"Vier hoeken","de":"Vier Ecken","fr":"Quatre coins","es":"Cuatro esquinas"},{"en":"X (both diagonals)","nl":"X (beide diagonalen)","de":"X (beide Diagonalen)","fr":"X (deux diagonales)","es":"X (ambas diagonales)"},{"en":"Plus / Cross (+)","nl":"Plus / Kruis (+)","de":"Plus / Kreuz (+)","fr":"Plus / Croix (+)","es":"Más / Cruz (+)"},{"en":"Postage Stamp (top-right 2x2)","nl":"Postzegel (rechtsboven 2x2)","de":"Briefmarke (oben rechts 2x2)","fr":"Timbre (haut-droite 2x2)","es":"Sello (sup-der 2x2)"},{"en":"Blackout / Full House","nl":"Volle kaart / Full House","de":"Vollkarte / Full House","fr":"Carton plein / Full House","es":"Cartón lleno / Full House"},{"en":"Outer Frame","nl":"Buitenrand","de":"Äußerer Rahmen","fr":"Cadre extérieur","es":"Marco exterior"},{"en":"One Line (any row)","nl":"Eén lijn (elke rij)","de":"Eine Linie (beliebige Reihe)","fr":"Une ligne (toute rangée)","es":"Una línea (cualquier fila)"},{"en":"Full House (all 15)","nl":"Full House (alle 15)","de":"Full House (alle 15)","fr":"Full House (les 15)","es":"Full House (los 15)"},{"en":"Two Lines","nl":"Twee lijnen","de":"Zwei Linien","fr":"Deux lignes","es":"Dos líneas"},{"en":"Letter T","nl":"Letter T","de":"Buchstabe T","fr":"Lettre T","es":"Letra T"},{"en":"Letter L","nl":"Letter L","de":"Buchstabe L","fr":"Lettre L","es":"Letra L"}];
 window.ENH_MENU = {"title":{"en":"Menu","nl":"Menu","de":"Menü","fr":"Menu","es":"Menú","pt":"Menu","it":"Menu","ru":"Меню","pl":"Menu","tr":"Menü","ja":"メニュー","zh":"菜单","ar":"القائمة","ko":"메뉴","hi":"मेनू"},"language":{"en":"Language","nl":"Taal","de":"Sprache","fr":"Langue","es":"Idioma","pt":"Idioma","it":"Lingua","ru":"Язык","pl":"Język","tr":"Dil","ja":"言語","zh":"语言","ar":"اللغة","ko":"언어","hi":"भाषा"},"game":{"en":"Game settings","nl":"Spelinstellingen","de":"Spieleinstellungen","fr":"Paramètres du jeu","es":"Ajustes del juego","pt":"Configurações do jogo","it":"Impostazioni di gioco","ru":"Настройки игры","pl":"Ustawienia gry","tr":"Oyun ayarları","ja":"ゲーム設定","zh":"游戏设置","ar":"إعدادات اللعبة","ko":"게임 설정","hi":"गेम सेटिंग्स"},"print":{"en":"Print","nl":"Afdrukken","de":"Drucken","fr":"Impression","es":"Impresión","pt":"Impressão","it":"Stampa","ru":"Печать","pl":"Drukowanie","tr":"Yazdırma","ja":"印刷","zh":"打印","ar":"طباعة","ko":"인쇄","hi":"प्रिंट"},"cardsbtn":{"en":"Cards / PDF","nl":"Kaarten / PDF","de":"Karten / PDF","fr":"Cartes / PDF","es":"Cartones / PDF","pt":"Cartelas / PDF","it":"Cartelle / PDF","ru":"Карточки / PDF","pl":"Karty / PDF","tr":"Kartlar / PDF","ja":"カード / PDF","zh":"卡片 / PDF","ar":"البطاقات / PDF","ko":"카드 / PDF","hi":"कार्ड / PDF"},"verifybtn":{"en":"Check Bingo","nl":"Controleer Bingo","de":"Bingo prüfen","fr":"Vérifier le Bingo","es":"Comprobar Bingo","pt":"Verificar Bingo","it":"Verifica Bingo","ru":"Проверить Бинго","pl":"Sprawdź Bingo","tr":"Bingo Kontrol","ja":"ビンゴを確認","zh":"检查宾果","ar":"تحقق من البينغو","ko":"빙고 확인","hi":"बिंगो जांचें"},"back":{"en":"Back to Caller","nl":"Terug naar Omroeper","de":"Zurück zum Ansager","fr":"Retour à l'annonceur","es":"Volver al locutor","pt":"Voltar ao Locutor","it":"Torna alla Chiamata","ru":"Вернуться к Ведущему","pl":"Wróć do Wywołania","tr":"Çekiciye Geri Dön","ja":"司会に戻る","zh":"返回叫号","ar":"العودة إلى المنادي","ko":"콜러로 돌아가기","hi":"कॉलर पर वापस जाएं"},"auto":{"en":"Automatic calling","nl":"Automatisch omroepen","de":"Automatische Ansage","fr":"Annonce automatique","es":"Canto automático","pt":"Chamada automática","it":"Chiamata automatica","ru":"Автовызов","pl":"Automatyczne wywołanie","tr":"Otomatik çekme","ja":"自動呼出し","zh":"自动叫号","ar":"النداء التلقائي","ko":"자동 호출","hi":"स्वचालित कॉलिंग"},"patternlabel":{"en":"Winning pattern","nl":"Winnend patroon","de":"Gewinnmuster","fr":"Motif gagnant","es":"Patrón ganador","pt":"Padrão vencedor","it":"Schema vincente","ru":"Выигрышная схема","pl":"Wzór wygranej","tr":"Kazanma deseni","ja":"勝利パターン","zh":"获胜图案","ar":"نمط الفوز","ko":"당첨 패턴","hi":"विजयी पैटर्न"},"help":{"en":"Manual","nl":"Handleiding","de":"Anleitung","fr":"Guide","es":"Guía","pt":"Manual","it":"Guida","ru":"Руководство","pl":"Instrukcja","tr":"Kılavuz","ja":"使い方","zh":"使用说明","ar":"الدليل","ko":"사용법","hi":"गाइड"}};
 </script>
@@ -1011,7 +1073,7 @@ TF.forEach(function(f,i){TFA[i]&&Object.assign(f,TFA[i]);});
   function init(){
     var LANGS = window.ENH_I18N, T = window.ENH_T, TF = window.ENH_TF, MENU_T = window.ENH_MENU;
     var DEFAULT_LANG = 'nl';
-    var PDF_DEFAULT = 'Alderts Bingo Paradijs';
+    var PDF_DEFAULT = 'Aldert Bingo Paradijs';
 
     // ---------- i18n engine ----------
     var engByAny = {};
@@ -1087,6 +1149,7 @@ TF.forEach(function(f,i){TFA[i]&&Object.assign(f,TFA[i]);});
       document.querySelectorAll('#langBar button').forEach(function(b){ b.classList.toggle('active', b.dataset.lang===lang); });
       try{ localStorage.setItem('bingoLang', lang); }catch(e){}
       if(window.__syncPatternBadge) window.__syncPatternBadge();
+      if(window.__renderGuide) window.__renderGuide(lang); // handleiding in de ingestelde taal
       setTimeout(function(){ window.__obsPause=false; }, 30);
     };
     window.__applyMenuLang = applyMenuLang;
@@ -1353,12 +1416,14 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
     Patched.prototype=Orig.prototype; window.SpeechSynthesisUtterance=Patched; window.__speechHooked=true;
   }
 
-  // ---------- PDF default title ----------
-  var pdf=document.getElementById('pdfTitle');
-  if(pdf){
-    pdf.value=PDF_DEFAULT; pdf.defaultValue=PDF_DEFAULT;
-    function syncGameTitle(){ var t=document.getElementById('callerGameTitle'); if(t){ var v=(pdf.value||'').trim(); t.textContent = v ? (' - '+v) : ''; } }
-    pdf.addEventListener('input', syncGameTitle);
+  // ---------- speltitel (in spelinstellingen) → altijd in header ----------
+  var gt=document.getElementById('gameTitle');
+  if(gt){
+    if(!gt.value) gt.value=PDF_DEFAULT;
+    gt.defaultValue=PDF_DEFAULT;
+    function syncGameTitle(){ var t=document.getElementById('callerGameTitle'); if(t){ var v=(gt.value||'').trim()||PDF_DEFAULT; t.textContent=' - '+v; } }
+    gt.addEventListener('input', syncGameTitle);
+    gt.addEventListener('change', syncGameTitle); // ook na herstel uit lokale opslag
     syncGameTitle();
   }
 
@@ -1528,12 +1593,20 @@ function ENH_LAYOUT_AND_BOOT(LANGS, MENU_T, DEFAULT_LANG, PDF_DEFAULT){
     {id:'patternSel',   ev:'change'},
     {id:'autoInterval', ev:'change'},
     {id:'voiceToggle',  ev:'change'},
-    {id:'pdfTitle',     ev:'input'},
+    {id:'gameTitle',    ev:'input'},
     {id:'cardMode',     ev:'change'},
     {id:'cardCount',    ev:'input'}
     /* cardStart bewust NIET bewaren: begint altijd op 1, wel aanpasbaar per opdracht */
   ];
   try{ localStorage.removeItem('bingo.cardStart'); }catch(e){}
+  // eenmalige migratie: oude sleutel bingo.pdfTitle → bingo.gameTitle
+  try{
+    var _oldTitle=localStorage.getItem('bingo.pdfTitle');
+    if(_oldTitle!==null){
+      if(localStorage.getItem('bingo.gameTitle')===null) localStorage.setItem('bingo.gameTitle', _oldTitle);
+      localStorage.removeItem('bingo.pdfTitle');
+    }
+  }catch(e){}
   function key(id){ return 'bingo.'+id; }
   function read(el){ return el.type==='checkbox' ? (el.checked?'1':'0') : el.value; }
   function write(el,v){ if(el.type==='checkbox') el.checked=(v==='1'); else el.value=v; }
